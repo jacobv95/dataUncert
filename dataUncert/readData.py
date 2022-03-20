@@ -5,7 +5,7 @@ import os.path
 import re
 import string
 try:
-    from dataProcessing.variable import variable
+    from dataUncert.variable import variable
 except ModuleNotFoundError:
     from variable import variable
 

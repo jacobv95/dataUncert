@@ -4,11 +4,11 @@ import scipy.odr as odr
 from copy import copy
 import string
 try:
-    from dataProcessing.variable import variable
+    from dataUncert.variable import variable
 except ModuleNotFoundError:
     from variable import variable
 try:
-    from dataProcessing.unitSystem import unit as unitConversion
+    from dataUncert.unitSystem import unit as unitConversion
 except ModuleNotFoundError:
     from unitSystem import unit as unitConversion
 

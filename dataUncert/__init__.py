@@ -1,3 +1,3 @@
-from dataProcessing.variable import *
-from dataProcessing.fit import *
-from dataProcessing.readData import *
+from dataUncert.variable import *
+from dataUncert.fit import *
+from dataUncert.readData import *
