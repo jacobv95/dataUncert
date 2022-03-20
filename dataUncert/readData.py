@@ -4,8 +4,6 @@ import xlrd
 import os.path
 import re
 import string
-from fit import *
-import matplotlib.pyplot as plt
 try:
     from dataProcessing.variable import variable
 except ModuleNotFoundError:
@@ -284,28 +282,3 @@ class _Data():
                 print(f'{self.name}.{name}')
             else:
                 print(f'{suffix}.{self.name}.{name}')
-
-
-def main():
-    a = readData('a.xls', 'A', 'K', 'L', 'V')
-    b = readData('b.xlsx', 'A', 'B')
-    c = readData('c.xlsx', 'A', 'B', 'C', 'D')
-    d = readData('d.xlsx', 'A', 'B', 'C', 'D')
-    a.printContents()
-    b.printContents()
-    c.printContents()
-    d.printContents()
-
-    F = lin_fit(a.s1.t_phe_in_oil, a.s1.t_phe_out_glycol, p0=[1, 50])
-    fig, ax = plt.subplots()
-    F.plot(ax)
-    F.scatter(ax)
-    ax.legend()
-    ax.set_xlabel('temp1')
-    ax.set_ylabel('temp2')
-    F.addUnitToLabels(ax)
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()
