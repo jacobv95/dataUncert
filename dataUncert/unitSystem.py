@@ -572,6 +572,9 @@ class unit():
                 lSI += str(exponent)
             lower2SI.append(lSI)
 
+        upper1SI, lower1SI = self._cancleUnits(upper1SI, lower1SI)
+        upper2SI, lower2SI = self._cancleUnits(upper2SI, lower2SI)
+
         if upper1SI == upper2SI and lower1SI == lower2SI:
             return True
         else:

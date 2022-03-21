@@ -148,6 +148,10 @@ class test(unittest.TestCase):
             A._splitCompositeUnit('L/kg/min')
         self.assertEqual('A unit can only have a single slash (/)', str(context.exception))
 
+    def testCancleDifferentiUnits(self):
+        A = unit()
+        self.assertTrue(A.assertUnitsSI('m3/h-mm2', 'm/s'))
+
 
 if __name__ == '__main__':
     unittest.main()
