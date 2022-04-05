@@ -1,7 +1,5 @@
 import numpy as np
-import math
 import scipy.odr as odr
-from copy import copy
 import string
 try:
     from dataUncert.variable import variable
@@ -18,45 +16,61 @@ class _fit():
         self.n_significant = n_significant
         self.func = func
 
-        self.x = copy(x)
-        self.y = copy(y)
+        if not (isinstance(x, variable) and isinstance(y, variable)):
+            raise ValueError('The inputs has to be variables')
+
+        self.xVal = x.value
+        self.yVal = y.value
+        self.xUnit = x.unit
+        self.yUnit = y.unit
+        self.xUncert = x.uncert
+        self.yUncert = y.uncert
 
         # uncertanties can not be 0
-        sx = [elem if elem != 0 else 1e-10 for elem in self.x.uncert]
-        sy = [elem if elem != 0 else 1e-10 for elem in self.y.uncert]
+        if len(self.xVal) == 1:
+            sx = self.xUncert if self.xUncert != 0 else 1e-10
+        else:
+            sx = [elem if elem != 0 else 1e-10 for elem in self.xUncert]
+        if len(self.yVal) == 1:
+            sy = self.yUncert if self.yUncert != 0 else 1e-10
+        else:
+            sy = [elem if elem != 0 else 1e-10 for elem in self.yUncert]
 
         # add pertubation to initial guess. This helps if the initial guess is the solution
         p0 = [elem + np.random.rand() * 1e-5 for elem in p0]
 
         # create the regression
-        data = odr.RealData(self.x.value, self.y.value, sx=sx, sy=sy)
+        data = odr.RealData(self.xVal, self.yVal, sx=sx, sy=sy)
         regression = odr.ODR(data, odr.Model(self.func), beta0=p0)
         regression = regression.run()
         self.popt = regression.beta
-        self.conv = regression.cov_beta
-        self.uPopt = np.sqrt(np.diag(regression.cov_beta))
 
-        # turn the elements of popt in to pyees variables
+        cov = np.sqrt(np.diag(regression.cov_beta))
+        self.uPopt = []
+        for i in range(len(cov)):
+            self.uPopt.append(np.sqrt(cov[i]**2 + regression.sd_beta[i]**2))
+
         self.getPoptVariables()
 
         # determine r-squared
-        residuals = self.y.value - self.pred(self.x.value)
+        residuals = self.yVal - self.predict(self.xVal)
+        y_bar = np.mean(self.yVal)
         ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((self.y.value - np.mean(self.y.value))**2)
+        ss_tot = np.sum((self.yVal - y_bar)**2)
         if ss_tot != 0:
             self.r_squared = 1 - (ss_res / ss_tot)
         else:
             self.r_squared = 1
 
     def __str__(self):
-        return self.func_name() + ',  ' + self.r2_name()
+        return self.func_name() + ',  ' + self._r2_name()
 
-    def r2_name(self):
+    def _r2_name(self):
         return f'$R^2 = {self.r_squared:.5f}$'
 
     def scatter(self, ax, label=True, showUncert=True, **kwargs):
 
-        if all(self.x.uncert == 0) and all(self.y.uncert == 0):
+        if all(self.xUncert == 0) and all(self.yUncert == 0):
             showUncert = False
 
         # parse label
@@ -73,12 +87,15 @@ class _fit():
 
         # scatter
         if showUncert:
-            ax.errorbar(self.x.value, self.y.value, xerr=self.x.uncert, yerr=self.y.uncert, linestyle='None', label=label, **kwargs)
+            ax.errorbar(self.xVal, self.yVal, xerr=self.xUncert, yerr=self.yUncert, linestyle='None', label=label, **kwargs)
         else:
-            ax.scatter(self.x.value, self.y.value, label=label, **kwargs)
+            ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
-    def pred(self, x):
+    def predict(self, x):
         return self.func([elem.value for elem in self.popt], x)
+
+    def predDifferential(self, x):
+        return self.d_func([elem.value for elem in self.popt], x)
 
     def plot(self, ax, label=True, x=None, **kwargs):
 
@@ -95,15 +112,26 @@ class _fit():
             raise ValueError('The label has to be a string, a bool or None')
 
         if x is None:
-            x = np.linspace(np.min(self.x.value), np.max(self.x.value), 100)
-        ax.plot(x, self.pred(x), label=label, **kwargs)
+            x = np.linspace(np.min(self.xVal), np.max(self.xVal), 100)
+        ax.plot(x, self.predict(x), label=label, **kwargs)
 
-    def decimalString(self, x, includeSign):
-        n_zeros = math.ceil(-math.log10(np.abs(x)))
-        if includeSign:
-            return f'{x:+.{n_zeros + self.n_significant-1:d}f}'
+    def plotDifferential(self, ax, label=True, x=None, **kwargs):
+
+        # parse label
+        if isinstance(label, str):
+            label = label
+        elif label == True:
+            label = self.d_func_name()
+        elif label == False:
+            label = None
+        elif label is None:
+            label = None
         else:
-            return f'{x:.{n_zeros + self.n_significant-1:d}f}'
+            raise ValueError('The label has to be a string, a bool or None')
+
+        if x is None:
+            x = np.linspace(np.min(self.xVal), np.max(self.xVal), 100)
+        ax.plot(x, self.predDifferential(x), label=label, **kwargs)
 
     def addUnitToLabels(self, ax):
         self.addUnitToXLabel(ax)
@@ -139,7 +167,7 @@ class exp_fit(_fit):
         uA = self.uPopt[0]
         uB = self.uPopt[1]
 
-        unitA = self.y.unit
+        unitA = self.yUnit
         unitB = '1'
 
         a = variable(a, unitA, uA)
@@ -156,6 +184,9 @@ class exp_fit(_fit):
         a = B[0]
         b = B[1]
         return a * b**x * np.log(b)
+
+    def d_func_name(self):
+        return f'$a\cdot b^x\cdot \ln(b),\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
 
     def func_name(self):
         return f'$a\cdot b^x,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
@@ -176,7 +207,7 @@ class pow_fit(_fit):
         uA = self.uPopt[0]
         uB = self.uPopt[1]
 
-        unitA = self.y.unit
+        unitA = self.yUnit
         unitB = '1'
 
         a = variable(a, unitA, uA)
@@ -189,11 +220,16 @@ class pow_fit(_fit):
         b = B[1]
         return a * x**b
 
-    def d_func(self, x, a, b):
+    def d_func(self, B, x):
+        a = B[0]
+        b = B[1]
         return a * b * x**(b - 1)
 
+    def d_func_name(self):
+        return f'$a b x^{{b-1}},\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
+
     def func_name(self):
-        return f'$a\cdot x^b,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
+        return f'$a x^b,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
 
 
 def lin_fit(x, y, p0=[0, 0], n_sifnificant=3):
@@ -213,30 +249,52 @@ class pol_fit(_fit):
         popt = []
         n = self.deg
         u = unitConversion()
-        unitY = self.y.unit
-        unitX = self.x.unit
         for i in range(n + 1):
             value = self.popt[i]
             uncert = self.uPopt[i]
-            lower = u._power(unitX, n - i)
-            unit = u._divide(unitY, lower)
-            var = variable(value, unit, uncert)
+            lower = u._power(self.xUnit, n - i)
+            unit = u._divide(self.yUnit, lower)
+            var = variable(value, unit, uncert, nDigits=self.n_significant)
             popt.append(var)
         self.popt = popt
 
     def func(self, B, x):
         out = 0
         n = self.deg
-        for i in range(self.deg + 1):
+        for i in range(n + 1):
             out += B[i] * x**(n - i)
         return out
 
-    def d_func(self, B, x):  # TODO
-        a = B[0]
-        b = B[1]
-        return a
+    def d_func(self, B, x):
+        out = 0
+        n = self.deg
+        for i in range(n):
+            out += (n - i) * B[i] * x**(n - i - 1)
+        return out
 
-    def func_name(self):  # TODO
+    def d_func_name(self):
+        out = ''
+        n = self.deg
+        for i in range(n):
+            exponent = n - i - 1
+            coefficient = n - i
+            if out:
+                out += '+'
+            if coefficient != 1:
+                out += f'{coefficient}'
+
+            out += f'{string.ascii_lowercase[i]}'
+
+            if exponent != 0:
+                out += f'$x$'
+            if exponent > 1:
+                out += f'$^{exponent}$'
+
+        for i in range(n):
+            out += f', {string.ascii_lowercase[i]}={self.popt[i]}'
+        return out
+
+    def func_name(self):
         out = ''
         n = self.deg
         for i in range(n + 1):
@@ -272,7 +330,7 @@ class logistic_fit(_fit):
         uK = self.uPopt[1]
         uX0 = self.uPopt[2]
 
-        unitL = self.y.unit
+        unitL = self.yUnit
         unitK = '1'
         unitX0 = '1'
 
@@ -293,6 +351,17 @@ class logistic_fit(_fit):
         k = B[1]
         x0 = B[2]
         return k * L * np.exp(-k * (x - x0)) / ((np.exp(-k * (x - x0)) + 1)**2)
+
+    def d_func_name(self):
+        L = self.popt[0]
+        k = self.popt[1]
+        x0 = self.popt[2]
+
+        out = f'$\\frac{{k\cdot L \cdot e^{{-k\cdot (x-x_0)}}}}{{\\left(1 + e^{{-k\cdot (x-x_0)}}\\right)}}$'
+        out += f'$\quad L={L}$, '
+        out += f'$\quad k={k}$, '
+        out += f'$\quad x_0={x0}$'
+        return out
 
     def func_name(self):
         L = self.popt[0]
@@ -340,6 +409,15 @@ class logistic_100_fit(_fit):
         k = B[0]
         x0 = B[1]
         return k * L * np.exp(-k * (x - x0)) / ((np.exp(-k * (x - x0)) + 1)**2)
+
+    def d_func_name(self):
+        k = self.popt[0]
+        x0 = self.popt[1]
+
+        out = f'$\\frac{{k\cdot 100 \cdot e^{{-k\cdot (x-x_0)}}}}{{\\left(1 + e^{{-k\cdot (x-x_0)}}\\right)}}$'
+        out += f'$\quad k={k}$, '
+        out += f'$\quad x_0={x0}$'
+        return out
 
     def func_name(self):
         k = self.popt[0]

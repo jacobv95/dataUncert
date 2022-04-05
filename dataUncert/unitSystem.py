@@ -1,3 +1,4 @@
+import numpy as np
 
 
 class _unitConversion():
@@ -335,10 +336,7 @@ class unit():
 
         return out, siUnit, exponent
 
-    def assertSubtract(self, unit1, unit2):
-        return self.assertAdd(unit1, unit2)
-
-    def assertAdd(self, unit1, unit2):
+    def assertEqual(self, unit1, unit2):
         # determine the upper and lower units of unit 1
         upperUnit1, lowerUnit1 = self._splitCompositeUnit(unit1)
 
@@ -579,3 +577,33 @@ class unit():
             return True
         else:
             return False
+
+    def _nRoot(self, unit, power):
+
+        upper, lower = self._splitCompositeUnit(unit)
+
+        # Test if the exponent of all units is divisible by the power
+        for elem in upper + lower:
+            elem, exp = self._removeExponentFromUnit(elem)
+            remainder = exp % int(np.around(1 / power))
+            if remainder != 0:
+                raise ValueError(f'You can not raise a variable with the unit {unit} to the power of {power}')
+
+        # Determine the new exponent for all upper units
+        for i, up in enumerate(upper):
+            up, exp = self._removeExponentFromUnit(up)
+            exp *= power
+            if exp != 1:
+                up += str(int(exp))
+            upper[i] = up
+
+        # Determine the new exponent for all lower units
+        for i, low in enumerate(lower):
+            low, exp = self._removeExponentFromUnit(low)
+            exp *= power
+            if exp != 1:
+                low += str(int(exp))
+            lower[i] = low
+
+        unit = self._combineUpperAndLower(upper, lower)
+        return unit

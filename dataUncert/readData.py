@@ -160,7 +160,7 @@ class _readData():
 
         for i, sheet in enumerate(self.sheets):
 
-            sheetData = _Data(f's{i+1}')
+            sheetData = _Sheet(f's{i+1}')
 
             # determine the number of variables
             headers = self.readRow(sheet, 0)[0:self.nCols]
@@ -214,7 +214,7 @@ class _readData():
                         u = np.array(uncert[:, i])
                         var = variable(val, unit, uncert=u)
 
-                        sheetData.addMeasurement(name, var)
+                        sheetData._addMeasurement(name, var)
                 else:
                     # read the uncertanty
                     uncert = []
@@ -224,6 +224,13 @@ class _readData():
                             for k in range(self.nCols):
                                 u[j, k] = float(self.readCell(sheet, 2 + i * self.nCols + j, self.nCols + k))
                         uncert.append(u)
+
+                    # check if each element in the uncertanty is symmetric
+                    for elem in uncert:
+                        if (elem.shape == elem.transpose().shape) and (elem == elem.transpose()).all():
+                            pass
+                        else:
+                            raise ValueError('The covariances has to be symmetric')
 
                     # create the measurements with covariance uncertanties
                     vars = []
@@ -243,7 +250,7 @@ class _readData():
                                 vars[i]._addCovariance(vars[j], cov)
 
                     for head, var in zip(headers, vars):
-                        sheetData.addMeasurement(head, var)
+                        sheetData._addMeasurement(head, var)
             else:
                 # create the measurements without uncertanties
                 for i in range(self.nCols):
@@ -251,34 +258,138 @@ class _readData():
                     unit = units[i]
                     val = np.array(data[:, i])
                     var = variable(val, unit)
-                    sheetData.addMeasurement(name, var)
+                    sheetData._addMeasurement(name, var)
 
-            self.dat.addSheet(sheetData.name, sheetData)
+            self.dat._addSheet(sheetData.name, sheetData)
 
 
 class _Data():
-    def __init__(self, name='') -> None:
+    def __init__(self, name=''):
+        self.name = name
+        self.sheets = []
+
+    def _addSheet(self, name, sheet):
+        sheet.name = name
+        sheetNames = [elem.name for elem in self.sheets]
+        if name in sheetNames:
+            index = sheetNames.index(name)
+            self.sheets[index] = sheet
+        else:
+            self.sheets.append(sheet)
+        setattr(self, name, sheet)
+
+    def printContents(self):
+        for sheet in self.sheets:
+            sheet.printContents(self.name)
+            print('')
+
+    def __setattr__(self, name, value) -> None:
+        if isinstance(value, _Data):
+
+            value.name = name
+            sheetNames = [elem.name for elem in self.sheets]
+            if name in sheetNames:
+                index = sheetNames.index(name)
+                self.sheets[index] = value
+            else:
+                self.sheets.append(value)
+
+        self.__dict__[name] = value
+
+
+class _Sheet():
+    def __init__(self, name=''):
         self.name = name
         self.measurements = []
         self.measurementNames = []
-        self.sheets = []
 
-    def addSheet(self, name, sheet):
-        self.sheets.append(sheet)
-        setattr(self, name, sheet)
-
-    def addMeasurement(self, name, var):
+    def _addMeasurement(self, name, var):
         self.measurements.append(var)
         self.measurementNames.append(name)
         setattr(self, name, var)
 
     def printContents(self, suffix=None):
-        for sheet in self.sheets:
-            sheet.printContents(self.name)
-            print('')
 
         for name in self.measurementNames:
             if suffix is None:
                 print(f'{self.name}.{name}')
             else:
                 print(f'{suffix}.{self.name}.{name}')
+
+    def __setattr__(self, name, value) -> None:
+
+        self.__dict__[name] = value
+
+    def __getitem__(self, index):
+
+        measurements = []
+        for meas in self.measurements:
+            val = meas.value[index]
+            unit = meas.unit
+            uncert = meas.uncert[index]
+            measurements.append(variable(val, unit, uncert))
+
+        sheet = _Sheet(self.name)
+
+        for measurement, measurementName in zip(measurements, self.measurementNames):
+            sheet._addMeasurement(measurementName, measurement)
+
+        return sheet
+
+    def append(self, other):
+
+        if not isinstance(other, _Sheet):
+            raise ValueError('You can only append two sheets together')
+
+        # Test if all names are the same
+        for elem in self.measurementNames:
+            if elem not in other.measurementNames:
+                raise ValueError('You can only append sheets with the excact same measurements. The names did not match')
+
+        # get the measurements in the same order
+        measA = self.measurements
+        measB = []
+        for elem in self.measurementNames:
+            index = other.measurementNames.index(elem)
+            measB.append(other.measurements[index])
+
+        # test if all units are the same
+        for elemA, elemB in zip(measA, measB):
+            if elemA.unit != elemB.unit:
+                raise ValueError('You can only append sheets with the excact same measurements. The units did not match')
+
+        # append the data
+        for i in range(len(self.measurements)):
+            meas_i = measB[i]
+            self.measurements[i].value = np.append(self.measurements[i].value, meas_i.value)
+            self.measurements[i].uncert = np.append(self.measurements[i].uncert, meas_i.uncert)
+            if len(self.measurements[i].covariance) == 0:
+                if len(meas_i.covariance) == 0:
+                    # do nothing
+                    pass
+                else:
+                    # create covarinace for self.measurements[i] and fill it with zeros
+                    nData = int(len(self.measurements[i].value) / 2)
+                    for j in range(len(self.measurements)):
+                        if i != j:
+                            self.measurements[i].covariance[self.measurements[j]] = [0] * nData
+
+                    # append the covariance from meas_i
+                    keys = list(self.measurements[i].covariance.keys())
+                    keys_i = list(meas_i.covariance.keys())
+                    for key_i, name in zip(keys_i, other.measurementNames):
+                        index = self.measurementNames.index(name)
+                        self.measurements[i].covariance[keys[index]] = np.append(self.measurements[i].covariance[keys[index]], meas_i.covariance[key_i])
+            else:
+                if len(meas_i.covariance) == 0:
+                    # append zeros to the covariance of self.measurements[i]
+                    nData = int(len(self.measurements[i].value) / 2)
+                    for key in self.measurements[i].covariance.keys():
+                        self.measurements[i].covariance[key] = np.append(self.measurements[i].covariance[key], [0] * nData)
+                else:
+                    # append the covariance of meas_i to the covariance of self.measurements[i]
+                    keys = list(self.measurements[i].covariance.keys())
+                    keys_i = list(meas_i.covariance.keys())
+                    for key_i, name in zip(keys_i, other.measurementNames):
+                        index = self.measurementNames.index(name)
+                        self.measurements[i].covariance[keys[index]] = np.append(self.measurements[i].covariance[keys[index]], meas_i.covariance[key_i])

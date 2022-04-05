@@ -60,22 +60,22 @@ class test(unittest.TestCase):
         A = unit()
         a = 'L/min'
         b = 'kg-m/L'
-        c = A.assertAdd(a, b)
+        c = A.assertEqual(a, b)
         self.assertEqual(c, False)
         a = 'L/min'
         b = 'L/min'
-        c = A.assertAdd(a, b)
+        c = A.assertEqual(a, b)
         self.assertEqual(c, True)
 
     def testSub(self):
         A = unit()
         a = 'L/min'
         b = 'kg-m/L'
-        c = A.assertSubtract(a, b)
+        c = A.assertEqual(a, b)
         self.assertEqual(c, False)
         a = 'L/min'
         b = 'L/min'
-        c = A.assertSubtract(a, b)
+        c = A.assertEqual(a, b)
         self.assertEqual(c, True)
 
     def testConvertToSI(self):
@@ -86,7 +86,7 @@ class test(unittest.TestCase):
 
         a, b = A.convertToSI(1, 'bar-kg/h2-L3')
         self.assertAlmostEqual(a, 1 * 100000 * 1 * 1 / (60 * 60)**2 * (1000)**3)
-        self.assertEqual(A.assertAdd(b, 'kg2/s4-m10'), True)
+        self.assertEqual(A.assertEqual(b, 'kg2/s4-m10'), True)
         'pa-kg/s2-(m3)3'
         '(N/m)-kg/s2-m9'
         'N-kg/s2-m9'
@@ -108,7 +108,7 @@ class test(unittest.TestCase):
 
         a, b = A.convertFromSI(1, 'bar-kg/h2-L3')
         self.assertAlmostEqual(a, 1 / 100000 / 1 / 1 * (60 * 60)**2 / (1000)**3)
-        self.assertEqual(A.assertAdd(b, 'bar-kg/h2-L3'), True)
+        self.assertEqual(A.assertEqual(b, 'bar-kg/h2-L3'), True)
 
         with self.assertRaises(Exception) as context:
             a, b = A.convertFromSI(1, 'aL')

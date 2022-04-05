@@ -1,4 +1,3 @@
-from numpy import ndarray
 import autograd.numpy as np
 try:
     from dataUncert.unitSystem import unit as unitConversion
@@ -8,36 +7,43 @@ except ModuleNotFoundError:
 
 class variable():
     def __init__(self, value, unit, uncert=None, nDigits=3) -> None:
-        # convert list to ndarray
-        if isinstance(value, list):
-            value = np.array(value)
-        if isinstance(uncert, list):
-            uncert = np.array(uncert)
-
-        # evalute lenght of value and uncert
-        if isinstance(value, ndarray):
-            nValue = value.shape[0]
-        else:
-            nValue = 1
-        if not uncert is None:
-            if isinstance(uncert, ndarray):
-                nUncert = uncert.shape[0]
-            else:
-                nUncert = 1
-
-            if nValue != nUncert:
-                raise ValueError('The lenght of the value and the uncertanties has to be equal')
-        else:
-            if nValue == 1:
-                uncert = 0
-            else:
-                uncert = np.zeros(nValue)
 
         self.unit = unit
-        self.value = value
-        self.uncert = uncert
         self.unitConversion = unitConversion()
         self.nDigits = nDigits
+
+        # uncertanty
+        self.dependsOn = {}
+        self.covariance = {}
+
+        try:
+            # the value is a single number
+            float(value)
+            self.value = value
+
+            if uncert is None:
+                self.uncert = 0
+            else:
+                try:
+                    float(uncert)
+                    # the uncertanty is a number
+                    self.uncert = uncert
+                except TypeError:
+                    raise ValueError(f'The value is a number but the uncertanty is a {type(uncert)}')
+        except TypeError:
+            # the value contains multiple elements
+            if uncert is None:
+                self.value = np.array(value, dtype=float)
+                self.uncert = np.zeros(len(value), dtype=float)
+            else:
+                try:
+                    float(uncert)
+                    raise ValueError(f'The value is a list-like object but the uncertanty is a number')
+                except TypeError:
+                    if len(value) != len(uncert):
+                        raise ValueError('The number of elements in the value is not equal to the number of elements in the uncertanty')
+                    self.value = np.array(value, dtype=float)
+                    self.uncert = np.array(uncert, dtype=float)
 
         # uncertanty
         self.dependsOn = {}
@@ -59,38 +65,61 @@ class variable():
         u, l = self.unitConversion._splitCompositeUnit(newUnit)
         self.unit = self.unitConversion._combineUpperAndLower(u, l)
 
-    def __str__(self) -> str:
-        # TODO print with large values and small values
-        def decimalString(x):
-            if x != 0:
-                n_zeros = int(np.ceil(-np.log10(np.abs(x))))
-                n_decimals = np.max([n_zeros + self.nDigits - 1, 0])
-                return f'{x:.{n_decimals}f}'
+    def __getitem__(self, items):
+        if isinstance(self.value, np.ndarray):
+            vals = [self.value[i] for i in items]
+            uncert = [self.uncert[i]for i in items]
+            return variable(vals, self.unit, uncert)
+        else:
+            if items == 0:
+                return self
             else:
-                return f'{x:.{self.nDigits}f}'
+                L = np.array([0])
+                L[items]
+
+    def __str__(self) -> str:
+
+        # function to print number
+        def printUncertanty(value, uncert):
+            digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
+            uncert = f'{uncert:.{1}g}'
+            digitsValue = -int(np.floor(np.log10(np.abs(value))))
+            value = f'{value:.{digitsUncert-digitsValue+1}g}'
+            return value, uncert
+
+        # standard values
+        uncert = None
+        unit = self.unit if self.unit != '1' else ''
 
         if isinstance(self.value, float) or isinstance(self.value, int):
-            value = decimalString(self.value)
-        else:
-            value = [float(decimalString(elem)) for elem in self.value]
-        unit = self.unit
-        if unit == '1':
-            unit = ''
-        if isinstance(self.uncert, float) or isinstance(self.uncert, int):
+            # print a single value
+            value = self.value
             if self.uncert != 0:
-                uncert = decimalString(self.uncert)
-            else:
-                uncert = None
-        else:
-            if any(self.uncert != 0):
-                uncert = [float(decimalString(elem)) for elem in self.uncert]
-            else:
-                uncert = None
+                uncert = self.uncert
 
-        if uncert is None:
-            return f'{value} [{unit}]'
+            if uncert is None:
+                value = f'{value:.{self.nDigits}g}'
+                return f'{value} [{unit}]'
+            else:
+                # find number of significant digits in uncertanty
+                value, uncert = printUncertanty(value, uncert)
+                return f'{value} +/- {uncert} [{unit}]'
+
         else:
-            return f'{value} +/- {uncert} [{unit}]'
+            # print array of values
+            value = self.value
+            if any(self.uncert != 0):
+                uncert = self.uncert
+
+            if uncert is None:
+                value = [f'{elem:.{self.nDigits}g}' for elem in value]
+                return f'{value} [{unit}]'
+            else:
+                # find number of significant digits in uncertanty
+                for i in range(len(value)):
+                    value[i], uncert[i] = printUncertanty(value[i], uncert[i])
+
+                return f'{value} +/- {uncert} [{unit}]'
 
     def _addDependents(self, L, grad):
         for i, elem in enumerate(L):
@@ -131,7 +160,7 @@ class variable():
 
     def __add__(self, other):
         if isinstance(other, variable):
-            if not self.unitConversion.assertAdd(self.unit, other.unit):
+            if not self.unitConversion.assertEqual(self.unit, other.unit):
                 raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
             valSelf = self.value
@@ -155,7 +184,7 @@ class variable():
 
     def __sub__(self, other):
         if isinstance(other, variable):
-            if not self.unitConversion.assertSubtract(self.unit, other.unit):
+            if not self.unitConversion.assertEqual(self.unit, other.unit):
                 raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
             valSelf = self.value
@@ -210,10 +239,12 @@ class variable():
             unitOther = other.unit
             if unitOther != '1':
                 raise ValueError('The exponent can not have a unit')
-            if unitSelf != '1' and not isinstance(valOther, int):
-                raise ValueError('A measurement with a unit can only be raised to an integer power')
+
             if unitSelf != '1':
-                unit = unitConversion()._power(unitSelf, valOther)
+                if valOther < 1:
+                    unit = self.unitConversion._nRoot(unitSelf, valOther)
+                else:
+                    unit = self.unitConversion._power(unitSelf, valOther)
             else:
                 unit = '1'
 
@@ -330,3 +361,6 @@ class variable():
 
     def exp(self):
         return np.e**self
+
+    def sqrt(self):
+        return self**(1 / 2)
