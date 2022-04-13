@@ -4,7 +4,11 @@ setup.py
 dataUncert\__init__.py
 dataUncert\fit.py
 dataUncert\readData.py
+dataUncert\stackOverflowODR.py
+dataUncert\testDataUncert.py
+dataUncert\testFit.py
+dataUncert\testReadData.py
+dataUncert\testUnitSystem.py
+dataUncert\testVariable.py
 dataUncert\unitSystem.py
-dataUncert\unitSystemTesting.py
 dataUncert\variable.py
-dataUncert\variableTesting.py

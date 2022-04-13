@@ -84,7 +84,12 @@ class variable():
             digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
             uncert = f'{uncert:.{1}g}'
             digitsValue = -int(np.floor(np.log10(np.abs(value))))
-            value = f'{value:.{digitsUncert-digitsValue+1}g}'
+            if digitsUncert >= digitsValue:
+                value = f'{value:.{digitsUncert - digitsValue + 1}g}'
+            else:
+                value = '0'
+                if digitsUncert > 0:
+                    value += '.' + '0' * digitsUncert
             return value, uncert
 
         # standard values

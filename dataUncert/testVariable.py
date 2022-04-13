@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+from random import uniform
 try:
     from dataUncert.variable import variable
 except ModuleNotFoundError:
@@ -795,24 +796,58 @@ class test(unittest.TestCase):
     def testRoot(self):
         A = variable(10, 'L2/min2')
         a = np.sqrt(A)
-        self.assertEqual(a.value, 10**(1 / 2))
+        self.assertEqual(a.value, np.sqrt(10))
         self.assertEqual(a.unit, 'L/min')
+
         a = A**(1 / 2)
         self.assertEqual(a.value, 10**(1 / 2))
         self.assertEqual(a.unit, 'L/min')
 
-        A = variable(10, 'L4/min4')
-        a = A**(1 / 2)
-        self.assertEqual(a.value, 10**(1 / 2))
-        self.assertEqual(a.unit, 'L2/min2')
-        a = A**(1 / 4)
-        self.assertEqual(a.value, 10**(1 / 4))
-        self.assertEqual(a.unit, 'L/min')
+        for i in range(1, 1000):
+            u = f'L{i+1}/min{i+1}'
+            A = variable(10, u)
+            power = 1 / (i + 1)
+            a = A**power
+            self.assertEqual(a.value, 10**(1 / (i + 1)))
+            self.assertEqual(a.unit, 'L/min')
+
+            scale = uniform(0.5, 0.99)
+            with self.assertRaises(Exception) as context:
+                A ** (power * scale)
+            self.assertTrue(f'You can not raise a variable with the unit {u} to the power of {power * scale}' in str(context.exception))
+
+            scale = uniform(1.01, 1.5)
+            with self.assertRaises(Exception) as context:
+                A ** (power * scale)
+            self.assertTrue(f'You can not raise a variable with the unit {u} to the power of {power * scale}' in str(context.exception))
 
         A = variable(10, 'L2/m')
         with self.assertRaises(Exception) as context:
             np.sqrt(A)
         self.assertTrue('You can not raise a variable with the unit L2/m to the power of 0.5' in str(context.exception))
+
+    def testLargerUncertThenValue(self):
+
+        A = variable(0.003, 'L/min', 0.2)
+        self.assertEqual(A.__str__(), '0.0 +/- 0.2 [L/min]')
+
+        A = variable(1, 'L/min', 10)
+        self.assertEqual(A.__str__(), '0 +/- 1e+01 [L/min]')
+
+        A = variable(1, 'L/min', 2.3)
+        self.assertEqual(A.__str__(), '1 +/- 2 [L/min]')
+
+        A = variable(105, 'L/min', 135.653)
+        self.assertEqual(A.__str__(), '1e+02 +/- 1e+02 [L/min]')
+
+        A = variable(10.5, 'L/min', 135.653)
+        self.assertEqual(A.__str__(), '0 +/- 1e+02 [L/min]')
+
+        A = variable(0.0543, 'L/min', 0.07)
+        self.assertEqual(A.__str__(), '0.05 +/- 0.07 [L/min]')
+
+        A = variable(0.0543, 'L/min', 0.7)
+        self.assertEqual(A.__str__(), '0.0 +/- 0.7 [L/min]')
 
 
 if __name__ == '__main__':

@@ -582,27 +582,33 @@ class unit():
 
         upper, lower = self._splitCompositeUnit(unit)
 
+        def isCloseToInteger(a, rel_tol=1e-9, abs_tol=0.0):
+            b = np.around(a)
+            return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
         # Test if the exponent of all units is divisible by the power
         for elem in upper + lower:
             elem, exp = self._removeExponentFromUnit(elem)
-            remainder = exp % int(np.around(1 / power))
-            if remainder != 0:
+            # remainder = exp % int(np.around(1 / power))
+            if not isCloseToInteger(exp * power):
                 raise ValueError(f'You can not raise a variable with the unit {unit} to the power of {power}')
 
         # Determine the new exponent for all upper units
         for i, up in enumerate(upper):
             up, exp = self._removeExponentFromUnit(up)
             exp *= power
+            exp = int(np.around(exp))
             if exp != 1:
-                up += str(int(exp))
+                up += str(exp)
             upper[i] = up
 
         # Determine the new exponent for all lower units
         for i, low in enumerate(lower):
             low, exp = self._removeExponentFromUnit(low)
             exp *= power
+            exp = int(np.around(exp))
             if exp != 1:
-                low += str(int(exp))
+                low += str(exp)
             lower[i] = low
 
         unit = self._combineUpperAndLower(upper, lower)

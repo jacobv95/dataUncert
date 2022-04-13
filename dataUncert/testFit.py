@@ -5,58 +5,21 @@ from fit import *
 
 class test(unittest.TestCase):
 
-    def testConstFit(self):
+    def testUncertanty(self):
 
-        # no noise no uncertanty
-        x = [1, 2, 3]
-        y = [10, 10, 10]
-        x = variable(x, 'm')
-        y = variable(y, 'C')
-        F = pol_fit(x, y, deg=0)
-        Fa = F.popt[0]
-        self.assertAlmostEqual(Fa.value, 10)
-        self.assertEqual(Fa.unit, 'C')
-        self.assertAlmostEqual(Fa.uncert, 0)
-        self.assertAlmostEqual(F.r_squared, 1)
-
-        # uncertanty
-        x = [1, 2, 3]
-        y = [10, 10, 10]
-        x = variable(x, 'm')
-        y = variable(y, 'C', uncert=[1, 1, 1])
-        F = pol_fit(x, y, deg=0)
-        Fa = F.popt[0]
-        self.assertAlmostEqual(Fa.value, 10)
-        self.assertEqual(Fa.unit, 'C')
-        self.assertAlmostEqual(Fa.uncert, 1 / np.sqrt(3))
-        self.assertAlmostEqual(F.r_squared, 1)
-
-        # noise
-        x = [1, 2, 3]
-        y = [10.1, 9.8, 10.2]
-        x = variable(x, 'm')
-        y = variable(y, 'C')
-        F = pol_fit(x, y, deg=0)
-        Fa = F.popt[0]
-        self.assertAlmostEqual(Fa.value, 10.03333333)
-        self.assertEqual(Fa.unit, 'C')
-        self.assertAlmostEqual(Fa.uncert, 0.12018504251)
-        self.assertAlmostEqual(F.r_squared, 0)
-
-        # # uncertanty and noise
-        x = [1, 2, 3]
-        y = [10.1, 9.8, 10.2]
-        x = variable(x, 'm')
-        y = variable(y, 'C', uncert=[1, 1, 1])
-        F = pol_fit(x, y, deg=0)
-        Fa = F.popt[0]
-        F = pol_fit(x, y, deg=0)
-        Fa = F.popt[0]
-        self.assertAlmostEqual(Fa.value, 10.03333333)
-        self.assertEqual(Fa.unit, 'C')
-        # TODO where does 0.12018504251 come from ????
-        self.assertAlmostEqual(Fa.uncert, np.sqrt((1 / np.sqrt(3))**2 + (0.12018504251)**2))
-        self.assertAlmostEqual(F.r_squared, 0)
+        # constant fit with uncertanty
+        for i in range(2, 15):
+            x = list(range(1, i + 1))
+            y = [10] * i
+            x = variable(x, 'm')
+            y = variable(y, 'C', uncert=[1] * i)
+            F = pol_fit(x, y, deg=0)
+            Fa = F.popt[0]
+            self.assertAlmostEqual(Fa.value, 10)
+            self.assertEqual(Fa.unit, 'C')
+            self.assertAlmostEqual(Fa.uncert, 1 / np.sqrt(i))
+            self.assertAlmostEqual(F.r_squared, 1)
+            
 
     def testLinFit(self):
         a = 2
