@@ -6,6 +6,9 @@ We would like to calculate <img src="https://render.githubusercontent.com/render
 
 <img src="https://render.githubusercontent.com/render/math?math=\sigma_C = \sqrt{  \left(\frac{\partial C}{\partial A} \sigma_A\right)^2 %2B \left(\frac{\partial C}{\partial B} \sigma_B\right)^2 %2B 2\frac{\partial C}{\partial A}\frac{\partial C}{\partial B}\sigma_{AB}}">
 
+Here <img src="https://render.githubusercontent.com/render/math?math=\sigma_{AB}"> is the covariance of the measurements of <img src="https://render.githubusercontent.com/render/math?math=A"> and <img src="https://render.githubusercontent.com/render/math?math=B">. We will assumed that this is zero for now. The equation above is evaluated as follows:
+
+<img src="https://render.githubusercontent.com/render/math?math=\sigma_C = \sqrt{  \left(B \sigma_A\right)^2 %2B \left(A\sigma_B\right)^2 } = \sqrt{  \left(35.1 \cdot 2.6\right)^2 %2B \left(12.3 \cdot 8.9\right)^2 } = \sqrt{(91.26)^2 %2B (109.47)^2}=142.52">
 
 
 
