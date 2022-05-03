@@ -1,7 +1,7 @@
 # dataUncert
 Python package to perform data processing with uncertanties.
 
-Given to measurements  $`A`$ and $`B`$ both with uncertanties $`u(A)`$ and $`u(B)`$
+Given to measurements <img src="https://latex.codecogs.com/gif.latex?A " /> and <img src="https://latex.codecogs.com/gif.latex?B " /> both with uncertanties <img src="https://latex.codecogs.com/gif.latex?u(A) " /> and <img src="https://latex.codecogs.com/gif.latex?u(B) " />
 
 
 # How to install
