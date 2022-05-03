@@ -10,7 +10,21 @@ Here <img src="https://render.githubusercontent.com/render/math?math=\sigma_{AB}
 
 <img src="https://render.githubusercontent.com/render/math?math=\sigma_C = \sqrt{  \left(B \sigma_A\right)^2 %2B \left(A\sigma_B\right)^2 } = \sqrt{  \left(35.1 \cdot 2.6\right)^2 %2B \left(12.3 \cdot 8.9\right)^2 } = \sqrt{(91.26)^2 %2B (109.47)^2}=142.52">
 
+## Scope of this package
+These computations quickly becomes very difficult for more complicated equations than the one used in this example. This packages is designed to easily perform such computations. Furthermore a few features is added to the packages
+ - Read data with uncertanty from an .xls or .xlsx file
+ - Print measurements with the correct number of significant digits based on the uncertanty
+ - Plot data with errorbars
+ - Perform regression where the regression constants are affected by the uncertanty of the data
 
+## Documentation
+The documentation is split in to 4 parts:
+ - 1 variables
+ - 2 Importing data
+ - 3 Fitting
+ - 4 Plotting
+
+Se the folder "docs" for the documentation
 
 # How to install
 Just run ```pip install dataUncert```
