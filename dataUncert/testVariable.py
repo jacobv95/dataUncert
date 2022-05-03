@@ -852,6 +852,21 @@ class test(unittest.TestCase):
         A = variable(0.0543, 'L/min', 0.7)
         self.assertEqual(A.__str__(), '0.0 +/- 0.7 [L/min]')
 
+    def testUnitless(self):
+        with self.assertRaises(Exception) as context:
+            A = variable(10, 'P', 1)
+        self.assertTrue('The unit (P) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix (P) was not found' in str(context.exception))
+
+        A = variable(10, '1', 1)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, '1')
+        self.assertEqual(A.uncert, 1)
+
+        A = variable(10, '', 1)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, '1')
+        self.assertEqual(A.uncert, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

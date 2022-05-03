@@ -106,6 +106,36 @@ class unit():
             'M': 1e6
         }
 
+    def _isUnitKnown(self, unit):
+        upper, lower = self._splitCompositeUnit(unit)
+        units = upper + lower
+        if len(units) > 1:
+            for unit in units:
+                self._isUnitKnown(unit)
+        else:
+            unit = units[0]
+
+        unit, _ = self._removeExponentFromUnit(unit)
+
+        # search for the unit
+        for _, unitDict in self.units.items():
+            if unit in unitDict:
+                return
+
+        # The unit was not found. This must be because the unit has a prefix
+        prefix = unit[0:1]
+        unit = unit[1:]
+        if prefix not in self.prefixes:
+            raise ValueError(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
+
+        # look for the unit without the prefix
+        for _, unitDict in self.units.items():
+            if unit in unitDict:
+                return
+
+        # The unit was not found
+        raise ValueError(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the unit ({unit}) was not found')
+
     def convertToSI(self, value, unit, isUncert=False):
 
         upper, lower = self._splitCompositeUnit(unit)

@@ -16,3 +16,13 @@ F_exp = exp_fit(x: variable,y: variable)
 F_logistic = logistic_fit(x: variable,y: variable)
 F_logistic_100 = logistic_100_fit(x: variable,y: variable)
 ```
+
+
+## Priting
+TODO
+
+## Predict
+TODO
+
+## Predict differential
+TODO

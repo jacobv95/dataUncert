@@ -8,8 +8,11 @@ except ModuleNotFoundError:
 class variable():
     def __init__(self, value, unit, uncert=None, nDigits=3) -> None:
 
-        self.unit = unit
         self.unitConversion = unitConversion()
+        if unit == '':
+            unit = '1'
+        self.unit = unit
+        self.unitConversion._isUnitKnown(self.unit)
         self.nDigits = nDigits
 
         # uncertanty
@@ -154,7 +157,7 @@ class variable():
         self.covariance[var] = covariance
 
     def _calculateUncertanty(self):
-        
+
         # uncertanty from each measurement
         self.uncert = sum([(gi * var.uncert)**2 for gi, var in zip(self.dependsOn.values(), self.dependsOn.keys())])
 

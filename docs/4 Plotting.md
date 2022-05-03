@@ -12,6 +12,8 @@ F.plot(ax, label=True, x=None, **kwargs)
 - x is a numpy array of x values used to plot the regression. If None, then 100 points will be plotted
 - **kwargs are key word arguments for matplotlib.pyplot.plot  
 
+## Plot differential
+TODO
 
 ## Scatter
 The fit class has a function to scatter
