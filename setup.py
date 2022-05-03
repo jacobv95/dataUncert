@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name='dataUncert',
     packages=['dataUncert'],
-    version='1.4',
+    version='1.6',
     license='MIT',
     description='import data from .xlsx and .xls fils. Use the data to perform calculation with uncertanties',
     author='Jacob Vestergaard',

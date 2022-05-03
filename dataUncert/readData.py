@@ -10,14 +10,36 @@ except ModuleNotFoundError:
     from variable import variable
 
 
-def readData(xlFile, dataStartCol, dataEndCol, uncertStartCol=None, uncertEndCol=None):
-    dat = _readData(xlFile, dataStartCol, dataEndCol, uncertStartCol=uncertStartCol, uncertEndCol=uncertEndCol)
+def readData(xlFile, dataRange, uncertRange=None):
+    dat = _readData(xlFile, dataRange, uncertRange)
     return dat.dat
 
 
 class _readData():
 
-    def __init__(self, xlFile, dataStartCol, dataEndCol, uncertStartCol=None, uncertEndCol=None) -> None:
+    def __init__(self, xlFile, dataRange, uncertRange=None) -> None:
+
+        if not '-' in dataRange:
+            raise ValueError('The data range has to include a hyphen (-)')
+        index = dataRange.find('-')
+        dataStartCol = dataRange[0:index]
+        dataEndCol = dataRange[index + 1:]
+
+        if '-' in dataStartCol or '-' in dataEndCol:
+            raise ValueError('The data range can only include a singly hyphen (-)')
+
+        if not uncertRange is None:
+            if not '-' in uncertRange:
+                raise ValueError('The uncertanty range has to include a hyphen (-)')
+            index = uncertRange.find('-')
+            uncertStartCol = uncertRange[0:index]
+            uncertEndCol = uncertRange[index + 1:]
+
+            if '-' in uncertStartCol or '-' in uncertEndCol:
+                raise ValueError('The data range can only include a singly hyphen (-)')
+        else:
+            uncertStartCol = None
+            uncertEndCol = None
 
         # convert the coloumns
         self.dataStartCol = self.colToIndex(dataStartCol)
@@ -296,6 +318,9 @@ class _Data():
 
         self.__dict__[name] = value
 
+    def __iter__(self):
+        return iter(self.sheets)
+
 
 class _Sheet():
     def __init__(self, name=''):
@@ -393,3 +418,6 @@ class _Sheet():
                     for key_i, name in zip(keys_i, other.measurementNames):
                         index = self.measurementNames.index(name)
                         self.measurements[i].covariance[keys[index]] = np.append(self.measurements[i].covariance[keys[index]], meas_i.covariance[key_i])
+
+    def __iter__(self):
+        return iter(self.measurements)

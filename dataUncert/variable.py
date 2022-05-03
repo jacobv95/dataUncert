@@ -18,16 +18,14 @@ class variable():
 
         try:
             # the value is a single number
-            float(value)
-            self.value = value
+            self.value = float(value)
 
             if uncert is None:
                 self.uncert = 0
             else:
                 try:
-                    float(uncert)
                     # the uncertanty is a number
-                    self.uncert = uncert
+                    self.uncert = float(uncert)
                 except TypeError:
                     raise ValueError(f'The value is a number but the uncertanty is a {type(uncert)}')
         except TypeError:
@@ -82,16 +80,28 @@ class variable():
         # function to print number
         def printUncertanty(value, uncert):
             digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
-            uncert = f'{uncert:.{1}g}'
             digitsValue = -int(np.floor(np.log10(np.abs(value))))
-            if digitsUncert >= digitsValue:
-                value = f'{value:.{digitsUncert - digitsValue + 1}g}'
+
+            # uncertanty
+            if digitsUncert > 0:
+                uncert = f'{uncert:.{1}g}'
+            else:
+                nDecimals = len(str(int(uncert)))
+                uncert = int(np.around(uncert, -nDecimals + 1))
+
+            # value
+            if digitsValue <= digitsUncert:
+                if digitsUncert > 0:
+                    value = f'{value:.{digitsUncert}f}'
+                else:
+                    value = int(np.around(value, - nDecimals + 1))
             else:
                 value = '0'
                 if digitsUncert > 0:
-                    value += '.' + '0' * digitsUncert
+                    value += '.'
+                    for i in range(digitsUncert):
+                        value += '0'
             return value, uncert
-
         # standard values
         uncert = None
         unit = self.unit if self.unit != '1' else ''
@@ -144,7 +154,7 @@ class variable():
         self.covariance[var] = covariance
 
     def _calculateUncertanty(self):
-
+        
         # uncertanty from each measurement
         self.uncert = sum([(gi * var.uncert)**2 for gi, var in zip(self.dependsOn.values(), self.dependsOn.keys())])
 
@@ -254,7 +264,7 @@ class variable():
                 unit = '1'
 
             val = valSelf ** valOther
-            grad = [valOther * valSelf ** (valOther - 1), valSelf ** valOther * np.log(valSelf)]
+            grad = [valOther * valSelf ** (valOther - 1), valSelf ** valOther * np.log(np.abs(valSelf))]
             vars = [self, other]
 
             var = variable(val, unit)

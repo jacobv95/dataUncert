@@ -92,7 +92,10 @@ class _fit():
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
     def predict(self, x):
-        return self.func([elem.value for elem in self.popt], x)
+        if isinstance(x, variable):
+            return self.func(self.popt, x)
+        else:
+            return self.func([elem.value for elem in self.popt], x)
 
     def predDifferential(self, x):
         return self.d_func([elem.value for elem in self.popt], x)

@@ -727,13 +727,13 @@ class test(unittest.TestCase):
 
     def testPrintValueAndUncertScalar(self):
         A = variable(123456789 * 10**(0), 'm', uncert=123456789 * 10**(-2), nDigits=3)
-        self.assertEqual(A.__str__(), '1.23e+08 +/- 1e+06 [m]')
+        self.assertEqual(A.__str__(), '123000000 +/- 1000000 [m]')
 
         A = variable(123456789 * 10**(-2), 'm', uncert=123456789 * 10**(-4), nDigits=3)
-        self.assertEqual(A.__str__(), '1.23e+06 +/- 1e+04 [m]')
+        self.assertEqual(A.__str__(), '1230000 +/- 10000 [m]')
 
         A = variable(123456789 * 10**(-4), 'm', uncert=123456789 * 10**(-6), nDigits=3)
-        self.assertEqual(A.__str__(), '1.23e+04 +/- 1e+02 [m]')
+        self.assertEqual(A.__str__(), '12300 +/- 100 [m]')
 
         A = variable(123456789 * 10**(-6), 'm', uncert=123456789 * 10**(-8), nDigits=3)
         self.assertEqual(A.__str__(), '123 +/- 1 [m]')
@@ -754,10 +754,13 @@ class test(unittest.TestCase):
         self.assertEqual(A.__str__(), '0.000123 +/- 1e-06 [m]')
 
         A = variable(123456789 * 10**(-14), 'm', uncert=123456789 * 10**(-16), nDigits=3)
-        self.assertEqual(A.__str__(), '1.23e-06 +/- 1e-08 [m]')
+        self.assertEqual(A.__str__(), '0.00000123 +/- 1e-08 [m]')
 
         A = variable(123456789 * 10**(-16), 'm', uncert=123456789 * 10**(-18), nDigits=3)
-        self.assertEqual(A.__str__(), '1.23e-08 +/- 1e-10 [m]')
+        self.assertEqual(A.__str__(), '0.0000000123 +/- 1e-10 [m]')
+
+        A = variable(10.0, 'm', uncert=0.1)
+        self.assertEqual(A.__str__(), '10.0 +/- 0.1 [m]')
 
     def testPrintValueScalar(self):
         A = variable(123456789 * 10**(0), 'm', nDigits=6)
@@ -832,16 +835,16 @@ class test(unittest.TestCase):
         self.assertEqual(A.__str__(), '0.0 +/- 0.2 [L/min]')
 
         A = variable(1, 'L/min', 10)
-        self.assertEqual(A.__str__(), '0 +/- 1e+01 [L/min]')
+        self.assertEqual(A.__str__(), '0 +/- 10 [L/min]')
 
         A = variable(1, 'L/min', 2.3)
         self.assertEqual(A.__str__(), '1 +/- 2 [L/min]')
 
         A = variable(105, 'L/min', 135.653)
-        self.assertEqual(A.__str__(), '1e+02 +/- 1e+02 [L/min]')
+        self.assertEqual(A.__str__(), '100 +/- 100 [L/min]')
 
         A = variable(10.5, 'L/min', 135.653)
-        self.assertEqual(A.__str__(), '0 +/- 1e+02 [L/min]')
+        self.assertEqual(A.__str__(), '0 +/- 100 [L/min]')
 
         A = variable(0.0543, 'L/min', 0.07)
         self.assertEqual(A.__str__(), '0.05 +/- 0.07 [L/min]')
