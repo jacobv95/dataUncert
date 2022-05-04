@@ -53,7 +53,9 @@ class _fit():
         self.getPoptVariables()
 
         # determine r-squared
-        residuals = self.yVal - self.predict(self.xVal)
+        np.seterr('ignore')
+        residuals = (variable(self.yVal, self.yUnit) - self.predict(self.xVal)).value
+        np.seterr('warn')
         y_bar = np.mean(self.yVal)
         ss_res = np.sum(residuals**2)
         ss_tot = np.sum((self.yVal - y_bar)**2)
@@ -61,6 +63,8 @@ class _fit():
             self.r_squared = 1 - (ss_res / ss_tot)
         else:
             self.r_squared = 1
+
+        # enable warnings again
 
     def __str__(self):
         return self.func_name() + ',  ' + self._r2_name()
@@ -92,13 +96,14 @@ class _fit():
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
     def predict(self, x):
-        if isinstance(x, variable):
-            return self.func(self.popt, x)
-        else:
-            return self.func([elem.value for elem in self.popt], x)
+        if isinstance(x, list) or isinstance(x, np.ndarray):
+            x = variable(x, self.xUnit)
+        return self.func(self.popt, x)
 
-    def predDifferential(self, x):
-        return self.d_func([elem.value for elem in self.popt], x)
+    def predictDifferential(self, x):
+        if isinstance(x, list) or isinstance(x, np.ndarray):
+            x = variable(x, self.xUnit)
+        return self.d_func(self.popt, x)
 
     def plot(self, ax, label=True, x=None, **kwargs):
 

@@ -3,8 +3,7 @@
 The fit class has a function to plot
 
 ```
-F = lin_fit(x: variable,y: variable)
-F.plot(ax, label=True, x=None, **kwargs)
+fit.plot(ax, label=True, x=None, **kwargs)
 ```
 
 - ax is the axis object from matplotlib
@@ -13,14 +12,22 @@ F.plot(ax, label=True, x=None, **kwargs)
 - **kwargs are key word arguments for matplotlib.pyplot.plot  
 
 ## Plot differential
-TODO
-
-## Scatter
-The fit class has a function to scatter
+The fit class has a function to plot the differential
 
 ```
-F = lin_fit(x: variable,y: variable)
-F.scatter(ax, label=True, showUncert=True, **kwargs)
+fit.plotDifferential(ax, label=True, x=None, **kwargs)
+```
+
+- ax is the axis object from matplotlib
+- label is either a bool or a string. If True, the regression function will be written in the legend
+- x is a numpy array of x values used to plot the regression. If None, then 100 points will be plotted
+- **kwargs are key word arguments for matplotlib.pyplot.plot  
+
+## Scatter
+The fit class has a function to scatter the data used to generate the fit.
+
+```
+fit.scatter(ax, label=True, showUncert=True, **kwargs)
 ```
 
 - ax is the axis object from matplotlib

@@ -43,3 +43,34 @@ The following prefixes are known:
 ### examples
  - milli Liters per minute:               'mL/min'
  - Cubicmeter-kilogram per second:  'm3-kg/s
+
+
+## Printing
+The uncertanty is printed with one significant digit. The measurement is printed with the same number of decimal places as the uncertanty. This means that if the uncertanty is a factor of 10 larger than the measurement, then the variable is printed as zero.
+
+### Examples
+```
+print(variable(12.3,'m',0.01))
+>> 12.30 +/- 0.01 [m]
+
+print(variable(12.34,'m',0.))
+>> 12.3 +/- 0.1 [m]
+
+print(variable(1234,'m',16))
+>> 1230 +/- 20 [m]
+
+print(variable(12.34,'m',16))
+>> 10 +/- 20 [m]
+
+print(variable(1.234,'m',16))
+>> 0 +/- 20 [m]
+```
+
+
+## Convert
+A variable can be converted to another unit using the convert method.
+
+```
+variable.convert(unit: str)
+```
+

@@ -31,12 +31,12 @@ from dataUncert import *
 dat1 = readData('example1.xlsx', 'A-B', 'C-D')
 q1 = dat1.s1.a + dat1.s1.b
 print(q1)
->> [85.0] +/- [0.632] [m]
+>> [85.0] +/- [0.6] [m]
 
 dat2 = readData('example2.xlsx', 'A-B', 'C-D')
 q2 = dat2.s1.a + dat2.s1.b
 print(q2)
->> [85.0] +/- [2.28] [m]
+>> [85] +/- [2] [m]
 ```
 
 Notice that the uncertanty of q2 is larger than the uncertanty of q1. This is because example1.xlsx includes information about the covariance of the measurement of a and b.

@@ -19,10 +19,22 @@ F_logistic_100 = logistic_100_fit(x: variable,y: variable)
 
 
 ## Priting
-TODO
+The fit can be printed. This is done in latex format. First the model is printed, and then the coefficients are printed.
+
+```
+print(pol_fit) -> str
+```
 
 ## Predict
-TODO
+Once a fit has been made this can be used to create a prediction. The input can either be a float or a variable. If the float is a variable it is assued to have the same unit as the x-data used to generate the fit-object.
+
+```
+pol_fit.predict(x: float | variable) -> variable
+```
 
 ## Predict differential
-TODO
+Once a fit has been made this can be used to create a prediction of the differential. The input can either be a float or a variable. If the float is a variable it is assued to have the same unit as the x-data used to generate the fit-object.
+
+```
+pol_fit.predictDifferential(x: float | variable) -> variable
+```
