@@ -22,7 +22,6 @@ The documentation is split in to 4 parts:
  - 1 variables
  - 2 Importing data
  - 3 Fitting
- - 4 Plotting
 
 Se the folder "docs" for the documentation
 

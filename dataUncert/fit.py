@@ -12,8 +12,7 @@ except ModuleNotFoundError:
 
 
 class _fit():
-    def __init__(self, func, x, y, p0, n_significant=3) -> None:
-        self.n_significant = n_significant
+    def __init__(self, func, x, y, p0) -> None:
         self.func = func
 
         if not (isinstance(x, variable) and isinstance(y, variable)):
@@ -63,8 +62,6 @@ class _fit():
             self.r_squared = 1 - (ss_res / ss_tot)
         else:
             self.r_squared = 1
-
-        # enable warnings again
 
     def __str__(self):
         return self.func_name() + ',  ' + self._r2_name()
@@ -161,12 +158,12 @@ class _fit():
 
 
 class exp_fit(_fit):
-    def __init__(self, x, y, p0=[1, 1], n_sifnificant=3):
+    def __init__(self, x, y, p0=[1, 1]):
         if len(p0) != 2:
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
             raise ValueError('The variable "x" cannot have a unit')
-        _fit.__init__(self, self.func, x, y, p0=p0, n_significant=n_sifnificant)
+        _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         a = self.popt[0]
@@ -201,12 +198,12 @@ class exp_fit(_fit):
 
 
 class pow_fit(_fit):
-    def __init__(self, x, y, p0=[0, 0], n_sifnificant=3):
+    def __init__(self, x, y, p0=[1, 1]):
         if len(p0) != 2:
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
             raise ValueError('The variable "x" cannot have a unit')
-        _fit.__init__(self, self.func, x, y, p0=p0, n_significant=n_sifnificant)
+        _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         a = self.popt[0]
@@ -240,18 +237,20 @@ class pow_fit(_fit):
         return f'$a x^b,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
 
 
-def lin_fit(x, y, p0=[0, 0], n_sifnificant=3):
-    return pol_fit(x, y, deg=1, p0=p0, n_sifnificant=n_sifnificant)
+def lin_fit(x, y, p0=None):
+    return pol_fit(x, y, deg=1, p0=p0)
 
 
 class pol_fit(_fit):
-    def __init__(self, x, y, deg=2, p0=None, n_sifnificant=3):
+    def __init__(self, x, y, deg=2, p0=None):
         if p0 is None:
-            p0 = [0] * (deg + 1)
+            p0 = [1] * (deg + 1)
+        if len(p0) != (deg + 1):
+            raise ValueError(f'You have to provide initial guesses for {deg + 1} parameters')
         if deg + 1 != len(p0):
             raise ValueError('The length of the initial guess has to have one more element than the polynomial degree')
         self.deg = deg
-        _fit.__init__(self, self.func, x, y, p0=p0, n_significant=n_sifnificant)
+        _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         popt = []
@@ -262,7 +261,7 @@ class pol_fit(_fit):
             uncert = self.uPopt[i]
             lower = u._power(self.xUnit, n - i)
             unit = u._divide(self.yUnit, lower)
-            var = variable(value, unit, uncert, nDigits=self.n_significant)
+            var = variable(value, unit, uncert)
             popt.append(var)
         self.popt = popt
 
@@ -322,12 +321,12 @@ class pol_fit(_fit):
 
 
 class logistic_fit(_fit):
-    def __init__(self, x, y, p0=[0, 0, 0], n_sifnificant=3):
+    def __init__(self, x, y, p0=[1, 1, 1]):
         if len(p0) != 3:
             raise ValueError('You have to provide initial guesses for 3 parameters')
         if x.unit != '1':
             raise ValueError('The variable "x" cannot have a unit')
-        _fit.__init__(self, self.func, x, y, p0=p0, n_significant=n_sifnificant)
+        _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         L = self.popt[0]
@@ -384,12 +383,12 @@ class logistic_fit(_fit):
 
 
 class logistic_100_fit(_fit):
-    def __init__(self, x, y, p0=[0, 0], n_sifnificant=3):
+    def __init__(self, x, y, p0=[0, 0]):
         if len(p0) != 2:
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
             raise ValueError('The variable "x" cannot have a unit')
-        _fit.__init__(self, self.func, x, y, p0=p0, n_significant=n_sifnificant)
+        _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         k = self.popt[0]

@@ -6,6 +6,7 @@ Data can be imported using the function "readData"
 ```
 dat = readData(xlFile: str, dataRange: str, uncertRange=None: str)
 ```
+
  - xlFile - path to the excel file to be read
  - dataRange - The coloumns with the data. The start coloumn and the end coloum has to be seperated with a hyphen (-)
  - uncertRange - The coloumns with the data. The start coloumn and the end coloum has to be seperated with a hyphen (-)

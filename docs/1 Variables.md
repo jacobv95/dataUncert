@@ -4,8 +4,13 @@
 You can create a variables as follows
 
 ```
-var = variable(val: float, unit: str, uncert=None: float)
+var = variable(val: float | list | ndarray, unit: str, uncert=None: float | list | ndarray | None, nDigits = 3: int)
 ```
+
+ - val is the value of the variable
+ - unit is the unit of the variable
+ - uncert is the uncertanty of the variable
+ - nDigits is the number of significant digits used to print the variable, if the uncertanty is None or 0
 
 ## Units
 The unit is used to determine which computations can be performed:
