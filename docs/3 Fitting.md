@@ -95,19 +95,25 @@ The unit of the data parsed when initializing the fit object will be appended to
 
 ### Example
 ```
+from dataUncert import *
 import matplotlib.pyplot as plt
-from dataUncert import variable
+
+x = variable([3, 4, 5, 6], 'm', [0.15, 0.3, 0.45, 0.6])
+y = variable([10, 20, 30, 40], 'C', [2, 3, 4, 5])
+
+F = lin_fit(x, y)
+
 
 fig, ax = plt.subplots()
-x = variable([10,20,30,40], 'm', uncert = [1,2,3,4])
-y = variable([1,2,3,4], 'C', uncert = [0.2, 0.4, 0.6, 0.8])
-F_pol = pol_fit(x, y, deg = 2)
-fig, ax = plt.subplots()
-F_pol.plot(ax)
-F_pol.scatter(ax)
-F_pol.addUnitToLabels(ax)
+F.scatter(ax)
+F.plot(ax)
+ax.set_xlabel('Distance')
+ax.set_ylabel('Temperature')
+F.addUnitToLabels(ax)
 ax.legend()
+fig.tight_layout()
 plt.show()
+
 ```
 
 ![Fitting example](/docs/examples/fitExample.png)

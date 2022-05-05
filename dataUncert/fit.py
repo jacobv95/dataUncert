@@ -118,7 +118,8 @@ class _fit():
 
         if x is None:
             x = np.linspace(np.min(self.xVal), np.max(self.xVal), 100)
-        ax.plot(x, self.predict(x), label=label, **kwargs)
+        y = self.predict(x).value
+        ax.plot(x, y, label=label, **kwargs)
 
     def plotDifferential(self, ax, label=True, x=None, **kwargs):
 
@@ -146,14 +147,14 @@ class _fit():
         xLabel = ax.get_xlabel()
         if xLabel:
             xLabel += ' '
-        xLabel += f'[{self.x.unit}]'
+        xLabel += f'[{self.xUnit}]'
         ax.set_xlabel(xLabel)
 
     def addUnitToYLabel(self, ax):
         yLabel = ax.get_ylabel()
         if yLabel:
             yLabel += ' '
-        yLabel += f'[{self.y.unit}]'
+        yLabel += f'[{self.yUnit}]'
         ax.set_ylabel(yLabel)
 
 
