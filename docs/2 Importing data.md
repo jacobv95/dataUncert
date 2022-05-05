@@ -44,3 +44,19 @@ print(q2)
 Notice that the uncertanty of q2 is larger than the uncertanty of q1. This is because example1.xlsx includes information about the covariance of the measurement of a and b.
 
 Notice that both dat1 and dat2 has an object called s1. That is because the data for a and b are both located on sheet 1 of the .xlsx file.
+
+
+
+## printContents
+
+It is possible to print the contents of a data-object. 
+
+```
+from dataUncert import *
+
+dat1 = readData('example1.xlsx', 'A-B', 'C-D')
+dat1.printContents()
+>> .s1.a
+>> .s1.b
+```
+
