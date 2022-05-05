@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import numpy as np
 try:
     from dataUncert.unitSystem import unit as unitConversion
 except ModuleNotFoundError:

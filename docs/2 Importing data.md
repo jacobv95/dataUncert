@@ -23,8 +23,8 @@ The uncertanty can follow one of two structures:
 Structure 1 is used if only the uncertanty of the measurement is known. Structure 2 is unsed if covariance between the measurements are known as well.
 
 Two examples are given:
-![Example 1](/examples/example1.png)
-![Example 2](/examples/example2.png)
+![Example 1](/docs/examples/example1.png)
+![Example 2](/docs/examples/example2.png)
 
 ```
 from dataUncert import *

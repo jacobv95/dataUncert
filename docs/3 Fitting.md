@@ -110,4 +110,4 @@ ax.legend()
 plt.show()
 ```
 
-![Fitting example](/examples/fitExample.png)
+![Fitting example](/docs/examples/fitExample.png)
