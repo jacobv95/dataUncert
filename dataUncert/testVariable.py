@@ -867,6 +867,22 @@ class test(unittest.TestCase):
         self.assertEqual(A.unit, '1')
         self.assertEqual(A.uncert, 1)
 
+    def testPrettyPrint(self):
+        a = variable(12.3, 'm')
+        b = variable(12.3, 'm', 2.5)
+        c = variable([12.3, 56.2], 'm')
+        d = variable([12.3, 56.2], 'm', [2.5, 7.3])
+
+        self.assertEqual(a.__str__(pretty=False), '12.3 [m]')
+        self.assertEqual(b.__str__(pretty=False), '12 +/- 2 [m]')
+        self.assertEqual(c.__str__(pretty=False), '[12.3, 56.2] [m]')
+        self.assertEqual(d.__str__(pretty=False), '[12, 56] +/- [2, 7] [m]')
+
+        self.assertEqual(a.__str__(pretty=True), '12.3\\ \\left [m\\right ]')
+        self.assertEqual(b.__str__(pretty=True), '12 \pm 2\\ \\left [m\\right ]')
+        self.assertEqual(c.__str__(pretty=True), '[12.3, 56.2]\\ \\left [m\\right ]')
+        self.assertEqual(d.__str__(pretty=True), '[12, 56] \pm [2, 7]\\ \\left [m\\right ]')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -93,12 +93,12 @@ class _fit():
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
     def predict(self, x):
-        if isinstance(x, list) or isinstance(x, np.ndarray):
+        if not isinstance(x, variable):
             x = variable(x, self.xUnit)
         return self.func(self.popt, x)
 
     def predictDifferential(self, x):
-        if isinstance(x, list) or isinstance(x, np.ndarray):
+        if not isinstance(x, variable):
             x = variable(x, self.xUnit)
         return self.d_func(self.popt, x)
 
@@ -195,7 +195,7 @@ class exp_fit(_fit):
         return f'$a\cdot b^x\cdot \ln(b),\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
 
     def func_name(self):
-        return f'$a\cdot b^x,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
+        return f'$a\cdot b^x,\quad a={self.popt[0].__str__(pretty = True)}, \quad b={self.popt[1].__str__(pretty = True)}$'
 
 
 class pow_fit(_fit):
@@ -235,7 +235,7 @@ class pow_fit(_fit):
         return f'$a b x^{{b-1}},\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
 
     def func_name(self):
-        return f'$a x^b,\quad a=${self.popt[0]}$, \quad b=${self.popt[1]}'
+        return f'$a x^b,\quad a={self.popt[0].__str__(pretty = True)}, \quad b={self.popt[1].__str__(pretty = True)}$'
 
 
 def lin_fit(x, y, p0=None):
@@ -303,21 +303,22 @@ class pol_fit(_fit):
         return out
 
     def func_name(self):
-        out = ''
+        out = '$'
         n = self.deg
         for i in range(n + 1):
             exponent = n - i
-            if not out:
+            if i == 0:
                 out += f'{string.ascii_lowercase[i]}'
             else:
                 out += f'+{string.ascii_lowercase[i]}'
             if exponent != 0:
-                out += f'$x$'
+                out += f'x'
             if exponent > 1:
-                out += f'$^{exponent}$'
+                out += f'^{exponent}'
 
         for i in range(n + 1):
-            out += f', {string.ascii_lowercase[i]}={self.popt[i]}'
+            out += f', {string.ascii_lowercase[i]}={self.popt[i].__str__(pretty = True)}'
+        out += '$'
         return out
 
 
@@ -372,14 +373,14 @@ class logistic_fit(_fit):
         return out
 
     def func_name(self):
-        L = self.popt[0]
-        k = self.popt[1]
-        x0 = self.popt[2]
+        L = self.popt[0].__str__(pretty=True)
+        k = self.popt[1].__str__(pretty=True)
+        x0 = self.popt[2].__str__(pretty=True)
 
-        out = f'$\\frac{{L}}{{1 + e^{{-k\cdot (x-x_0)}}}}$'
-        out += f'$\quad L={L}$'
-        out += f'$\quad k={k}$'
-        out += f'$\quad x_0={x0}$'
+        out = f'$\\frac{{L}}{{1 + e^{{-k\cdot (x-x_0)}}}}'
+        out += f'\quad L={L}'
+        out += f'\quad k={k}'
+        out += f'\quad x_0={x0}$'
         return out
 
 
@@ -407,9 +408,12 @@ class logistic_100_fit(_fit):
         self.popt = [k, x0]
 
     def func(self, B, x):
-        L = 100
         k = B[0]
         x0 = B[1]
+        if isinstance(k, variable):
+            L = variable(100, self.yUnit)
+        else:
+            L = 100
         return L / (1 + np.exp(-k * (x - x0)))
 
     def d_func(self, B, x):
@@ -428,10 +432,10 @@ class logistic_100_fit(_fit):
         return out
 
     def func_name(self):
-        k = self.popt[0]
-        x0 = self.popt[1]
+        k = self.popt[0].__str__(pretty=True)
+        x0 = self.popt[1].__str__(pretty=True)
 
-        out = f'$\\frac{{100}}{{1 + e^{{-k\cdot (x-x_0)}}}}$'
-        out += f'$\quad k={k}$'
-        out += f'$\quad x_0={x0}$'
+        out = f'$\\frac{{100}}{{1 + e^{{-k\cdot (x-x_0)}}}}'
+        out += f'\quad k={k}'
+        out += f'\quad x_0={x0}$'
         return out

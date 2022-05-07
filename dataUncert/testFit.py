@@ -19,6 +19,7 @@ class test(unittest.TestCase):
             self.assertEqual(Fa.unit, 'C')
             self.assertAlmostEqual(Fa.uncert, 1 / np.sqrt(i))
             self.assertAlmostEqual(F.r_squared, 1)
+            
 
     def testLinFit(self):
         a = 2

@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 try:
     from dataUncert.unitSystem import unit as unitConversion
 except ModuleNotFoundError:
@@ -78,36 +78,76 @@ class variable():
                 L = np.array([0])
                 L[items]
 
-    def __str__(self) -> str:
-
+    def printUncertanty(self, value, uncert):
         # function to print number
-        def printUncertanty(value, uncert):
-            digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
-            digitsValue = -int(np.floor(np.log10(np.abs(value))))
+        digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
+        digitsValue = -int(np.floor(np.log10(np.abs(value))))
 
-            # uncertanty
+        # uncertanty
+        if digitsUncert > 0:
+            uncert = f'{uncert:.{1}g}'
+        else:
+            nDecimals = len(str(int(uncert)))
+            uncert = int(np.around(uncert, -nDecimals + 1))
+
+        # value
+        if digitsValue <= digitsUncert:
             if digitsUncert > 0:
-                uncert = f'{uncert:.{1}g}'
+                value = f'{value:.{digitsUncert}f}'
             else:
-                nDecimals = len(str(int(uncert)))
-                uncert = int(np.around(uncert, -nDecimals + 1))
+                value = int(np.around(value, - nDecimals + 1))
+        else:
+            value = '0'
+            if digitsUncert > 0:
+                value += '.'
+                for i in range(digitsUncert):
+                    value += '0'
+        return value, uncert
 
-            # value
-            if digitsValue <= digitsUncert:
-                if digitsUncert > 0:
-                    value = f'{value:.{digitsUncert}f}'
-                else:
-                    value = int(np.around(value, - nDecimals + 1))
-            else:
-                value = '0'
-                if digitsUncert > 0:
-                    value += '.'
-                    for i in range(digitsUncert):
-                        value += '0'
-            return value, uncert
+    def __str__(self, pretty=None) -> str:
+
         # standard values
         uncert = None
         unit = self.unit if self.unit != '1' else ''
+
+        if pretty:
+            pm = r'\pm'
+            space = r'\ '
+            squareBracketLeft = r'\left ['
+            squareBracketRight = r'\right ]'
+            upper, lower = self.unitConversion._splitCompositeUnit(unit)
+            if len(lower) != 0:
+                # a fraction is needed
+                unit = rf'\frac{{'
+                for i, up in enumerate(upper):
+                    up, exp = self.unitConversion._removeExponentFromUnit(up)
+                    if exp > 1:
+                        up = rf'{up}^{exp}'
+                    unit += rf'{up}'
+                    if i != len(upper) - 1:
+                        unit += rf' \cdot '
+                unit += rf'}}{{'
+                for i, low in enumerate(lower):
+                    low, exp = self.unitConversion._removeExponentFromUnit(low)
+                    if exp > 1:
+                        low = rf'{low}^{exp}'
+                    unit += rf'{low}'
+                    if i != len(lower) - 1:
+                        unit += rf' \cdot '
+                unit += rf'}}'
+            else:
+                # no fraction
+                unit = r''
+                for i, up in enumerate(upper):
+                    unit += rf'{up}'
+                    if i != len(upper) - 1:
+                        unit += rf' \cdot '
+
+        else:
+            pm = '+/-'
+            squareBracketLeft = '['
+            squareBracketRight = ']'
+            space = ' '
 
         if isinstance(self.value, float) or isinstance(self.value, int):
             # print a single value
@@ -117,11 +157,11 @@ class variable():
 
             if uncert is None:
                 value = f'{value:.{self.nDigits}g}'
-                return f'{value} [{unit}]'
+                return rf'{value}{space}{squareBracketLeft}{unit}{squareBracketRight}'
             else:
                 # find number of significant digits in uncertanty
-                value, uncert = printUncertanty(value, uncert)
-                return f'{value} +/- {uncert} [{unit}]'
+                value, uncert = self.printUncertanty(value, uncert)
+                return rf'{value} {pm} {uncert}{space}{squareBracketLeft}{unit}{squareBracketRight}'
 
         else:
             # print array of values
@@ -131,13 +171,39 @@ class variable():
 
             if uncert is None:
                 value = [f'{elem:.{self.nDigits}g}' for elem in value]
-                return f'{value} [{unit}]'
+                out = rf''
+                out += rf'['
+                for i, elem in enumerate(value):
+                    out += rf'{elem}'
+                    if i != len(value) - 1:
+                        out += rf', '
+                out += rf']'
+                out += rf'{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                return out
             else:
                 # find number of significant digits in uncertanty
+                valStr = []
+                uncStr = []
                 for i in range(len(value)):
-                    value[i], uncert[i] = printUncertanty(value[i], uncert[i])
-
-                return f'{value} +/- {uncert} [{unit}]'
+                    val, unc = self.printUncertanty(value[i], uncert[i])
+                    valStr.append(val)
+                    uncStr.append(unc)
+                out = rf''
+                out += rf'['
+                for i, elem in enumerate(valStr):
+                    out += rf'{elem}'
+                    if i != len(value) - 1:
+                        out += r', '
+                out += rf']'
+                out += rf' {pm} '
+                out += rf'['
+                for i, elem in enumerate(uncStr):
+                    out += rf'{elem}'
+                    if i != len(uncert) - 1:
+                        out += r', '
+                out += rf']'
+                out += rf'{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                return out
 
     def _addDependents(self, L, grad):
         for i, elem in enumerate(L):
@@ -267,7 +333,23 @@ class variable():
                 unit = '1'
 
             val = valSelf ** valOther
-            grad = [valOther * valSelf ** (valOther - 1), valSelf ** valOther * np.log(np.abs(valSelf))]
+
+            def gradSelf(valSelf, valOther, uncertSelf):
+                if uncertSelf != 0:
+                    return valOther * valSelf ** (valOther - 1)
+                else:
+                    return 0
+
+            def gradOther(valSelf, valOther, uncertOther):
+                if uncertOther != 0:
+                    return valSelf ** valOther * np.log(np.abs(valSelf))
+                else:
+                    return 0
+
+            gradSelf = np.vectorize(gradSelf)(valSelf, valOther, self.uncert)
+            gradOther = np.vectorize(gradOther)(valSelf, valOther, other.uncert)
+
+            grad = [gradSelf, gradOther]
             vars = [self, other]
 
             var = variable(val, unit)
@@ -294,7 +376,23 @@ class variable():
             else:
                 unit = '1'
             val = valOther ** valSelf
-            grad = [valSelf * valOther ** (valSelf - 1), valOther ** valSelf * np.log(valOther)]
+
+            def gradSelf(valSelf, valOther, uncertSelf):
+                if uncertSelf != 0:
+                    return valSelf * valOther ** (valSelf - 1)
+                else:
+                    return 0
+
+            def gradOther(valSelf, valOther, uncertOther):
+                if uncertOther != 0:
+                    return valOther ** valSelf * np.log(valOther)
+                else:
+                    return 0
+
+            gradSelf = np.vectorize(gradSelf)(valSelf, valOther, self.uncert)
+            gradOther = np.vectorize(gradOther)(valSelf, valOther, other.uncert)
+
+            grad = [gradSelf, gradOther]
             vars = [self, other]
 
             var = variable(val, unit)

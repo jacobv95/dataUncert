@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name='dataUncert',
     packages=['dataUncert'],
-    version='1.6',
+    version='1.7',
     license='MIT',
     description='import data from .xlsx and .xls files. Use the data to perform calculation with uncertanties',
     author='Jacob Vestergaard',
@@ -18,6 +18,6 @@ setup(
         'Intended Audience :: Developers',      # Define that your audience are developers
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.6',  # Specify which pyhton versions that you want to support
+        'Programming Language :: Python :: 3',  # Specify which pyhton versions that you want to support
     ],
 )
