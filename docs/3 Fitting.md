@@ -1,6 +1,7 @@
 
 # Fitting
 The package includes a tool to produce fits. The following fits are known
+ - dummy fit
  - Linear fit
  - Polynomial fit
  - Power fit
@@ -8,7 +9,10 @@ The package includes a tool to produce fits. The following fits are known
  - Logistic fit
  - Logistic fit with a fixed maximum value of 100
 
+The dummy fit will always return a constant function with a value of 1. This fit is primarily used to easily plot the data.
+
 ```
+F_dummy = dummy_fit(x: variable, y: variable)
 F_lin = lin_fit(x: variable, y: variable, p0 = None: list | None)
 F_pol = pol_fit(x: variable, y: variable, deg: int = 2, p0 = None: list | None)
 F_pow = pow_fit(x: variable, y: variable, p0 = None: list | None)
@@ -79,6 +83,17 @@ fit.scatter(ax, label=True, showUncert=True, **kwargs)
 - ax is the axis object from matplotlib
 - label is either a bool or a string. If True, the word "Data" is printed in the legend
 - showUncert is a bool. Errorbars are shown if true
+- **kwargs are key word arguments for matplotlib.pyplot.scatter  
+
+### plotData
+The fit class has a function to plot the data used to generate the fit.
+
+```
+fit.plotData(ax, label=True, **kwargs)
+```
+
+- ax is the axis object from matplotlib
+- label is either a bool or a string. If True, the word "Data" is printed in the legend
 - **kwargs are key word arguments for matplotlib.pyplot.scatter  
 
 ### Axis labels
