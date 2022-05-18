@@ -92,6 +92,22 @@ class _fit():
         else:
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
+    def plotData(self, ax, label=True, **kwargs):
+
+        # parse label
+        if isinstance(label, str):
+            label = label
+        elif label == True:
+            label = 'Data'
+        elif label == False:
+            label = None
+        elif label is None:
+            label = None
+        else:
+            raise ValueError('The label has to be a string, a bool or None')
+
+        ax.plot(self.xVal, self.yVal, label=label, **kwargs)
+
     def predict(self, x):
         if not isinstance(x, variable):
             x = variable(x, self.xUnit)
@@ -156,6 +172,40 @@ class _fit():
             yLabel += ' '
         yLabel += f'[{self.yUnit}]'
         ax.set_ylabel(yLabel)
+
+
+class dummy_fit(_fit):
+    def __init__(self, x, y, p0=None):
+
+        if not (isinstance(x, variable) and isinstance(y, variable)):
+            raise ValueError('The inputs has to be variables')
+
+        self.xVal = x.value
+        self.yVal = y.value
+        self.xUnit = x.unit
+        self.yUnit = y.unit
+        self.xUncert = x.uncert
+        self.yUncert = y.uncert
+
+        self.r_squared = 0
+        self.popt = [variable(1, self.yUnit)]
+
+    def func(self, B, x):
+        val = self.popt[0].value
+        val = [val] * len(x.value)
+        return variable(val, self.yUnit)
+
+    def d_func(self, B, x):
+        val = [0] * len(x.value)
+        unit = (self.popt[0] / variable(1, self.xUnit)).unit
+        return variable(val, unit)
+
+    def func_name(self):
+        return f'{self.popt[0]}'
+
+    def d_func_name(self):
+        unit = (self.popt[0] / variable(1, self.xUnit)).unit
+        return f'{variable(0, unit)}'
 
 
 class exp_fit(_fit):
