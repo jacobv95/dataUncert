@@ -30,7 +30,8 @@ class unit():
     def __init__(self) -> None:
 
         unit = {
-            '1': _unitConversion(1, 0)
+            '1': _unitConversion(1, 0),
+            "": _unitConversion(1, 0)
         }
 
         force = {
@@ -442,15 +443,21 @@ class unit():
                 u, exponent = self._removeExponentFromUnit(u)
                 exponent *= power
                 if exponent != 1:
-                    u = u + str(int(exponent))
-                upperUnit1[i] = u
+                    if exponent == 0:
+                        upperUnit1[i] = '1'
+                    else:
+                        u = u + str(int(exponent))
+                        upperUnit1[i] = u
         for i in range(len(lowerUnit1)):
             u = lowerUnit1[i]
             u, exponent = self._removeExponentFromUnit(u)
             exponent *= power
             if exponent != 1:
-                u = u + str(int(exponent))
-            lowerUnit1[i] = u
+                if exponent == 0:
+                    lowerUnit1[i] = '1'
+                else:
+                    u = u + str(int(exponent))
+                    lowerUnit1[i] = u
 
         # combine the upper and lower
         u = self._combineUpperAndLower(upperUnit1, lowerUnit1)
@@ -643,3 +650,5 @@ class unit():
 
         unit = self._combineUpperAndLower(upper, lower)
         return unit
+
+

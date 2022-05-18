@@ -27,6 +27,9 @@ class test(unittest.TestCase):
         a = A._power('L-kg/min', 2)
         self.assertEqual(a, 'L2-kg2/min2')
 
+        a = A._power('m/s2', 0)
+        self.assertEqual(a, '1')
+
     def testMultiply(self):
         A = unit()
         a = 'L/min'

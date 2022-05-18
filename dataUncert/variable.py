@@ -325,7 +325,9 @@ class variable():
                 raise ValueError('The exponent can not have a unit')
 
             if unitSelf != '1':
-                if valOther < 1:
+                if valOther == 0:
+                    unit = self.unitConversion._power(unitSelf, valOther)
+                elif valOther < 1:
                     unit = self.unitConversion._nRoot(unitSelf, valOther)
                 else:
                     unit = self.unitConversion._power(unitSelf, valOther)
@@ -342,7 +344,7 @@ class variable():
 
             def gradOther(valSelf, valOther, uncertOther):
                 if uncertOther != 0:
-                    return valSelf ** valOther * np.log(np.abs(valSelf))
+                    return valSelf ** valOther * np.log(valSelf)
                 else:
                     return 0
 
