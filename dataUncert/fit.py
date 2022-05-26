@@ -1,14 +1,10 @@
+import logging
+logger = logging.getLogger(__name__)
 import numpy as np
 import scipy.odr as odr
 import string
-try:
-    from dataUncert.variable import variable
-except ModuleNotFoundError:
-    from variable import variable
-try:
-    from dataUncert.unitSystem import unit as unitConversion
-except ModuleNotFoundError:
-    from unitSystem import unit as unitConversion
+from dataUncert.variable import variable
+from dataUncert.unitSystem import unit as unitConversion
 
 
 class _fit():
@@ -16,6 +12,7 @@ class _fit():
         self.func = func
 
         if not (isinstance(x, variable) and isinstance(y, variable)):
+            logger.error('The inputs has to be variables')
             raise ValueError('The inputs has to be variables')
 
         self.xVal = x.value
@@ -35,12 +32,13 @@ class _fit():
         else:
             sy = [elem if elem != 0 else 1e-10 for elem in self.yUncert]
 
-        # add pertubation to initial guess. This helps if the initial guess is the solution
-        p0 = [elem + np.random.rand() * 1e-5 for elem in p0]
-
         # create the regression
         data = odr.RealData(self.xVal, self.yVal, sx=sx, sy=sy)
         regression = odr.ODR(data, odr.Model(self.func), beta0=p0)
+        regression = regression.run()
+        popt = regression.beta
+        popt = [0.9 * elem for elem in popt]
+        regression = odr.ODR(data, odr.Model(self.func), beta0=popt)
         regression = regression.run()
         self.popt = regression.beta
 
@@ -84,12 +82,15 @@ class _fit():
         elif label is None:
             label = None
         else:
+            logger.error('The label has to be a string, a bool or None')
             raise ValueError('The label has to be a string, a bool or None')
 
         # scatter
         if showUncert:
-            ax.errorbar(self.xVal, self.yVal, xerr=self.xUncert, yerr=self.yUncert, linestyle='None', label=label, **kwargs)
+            logger.info(f'Scattering the data on the axis {ax} with uncetanties. The label is "{label}"')
+            ax.errorbar(self.xVal, self.yVal, xerr=self.xUncert, yerr=self.yUncert, label=label, **kwargs)
         else:
+            logger.info(f'Scattering the data on the axis {ax} without uncetanties. The label is "{label}"')
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)
 
     def plotData(self, ax, label=True, **kwargs):
@@ -104,16 +105,20 @@ class _fit():
         elif label is None:
             label = None
         else:
+            logger.error('The label has to be a string, a bool or None')
             raise ValueError('The label has to be a string, a bool or None')
 
+        logger.info(f'Plotting the data on the axis {ax}. The label is "{label}"')
         ax.plot(self.xVal, self.yVal, label=label, **kwargs)
 
     def predict(self, x):
+        logger.info(f'Predicting the y-value using the input {x}')
         if not isinstance(x, variable):
             x = variable(x, self.xUnit)
         return self.func(self.popt, x)
 
     def predictDifferential(self, x):
+        logger.info(f'Predicting the differential of the y-value using the input {x}')
         if not isinstance(x, variable):
             x = variable(x, self.xUnit)
         return self.d_func(self.popt, x)
@@ -130,12 +135,14 @@ class _fit():
         elif label is None:
             label = None
         else:
+            logger.error('The label has to be a string, a bool or None')
             raise ValueError('The label has to be a string, a bool or None')
 
         if x is None:
             x = np.linspace(np.min(self.xVal), np.max(self.xVal), 100)
         y = self.predict(x).value
         ax.plot(x, y, label=label, **kwargs)
+        logger.info(f'Plotting the regression on the axis {ax}. The label is {label}')
 
     def plotDifferential(self, ax, label=True, x=None, **kwargs):
 
@@ -149,17 +156,20 @@ class _fit():
         elif label is None:
             label = None
         else:
+            logger.error('The label has to be a string, a bool or None')
             raise ValueError('The label has to be a string, a bool or None')
 
         if x is None:
             x = np.linspace(np.min(self.xVal), np.max(self.xVal), 100)
         ax.plot(x, self.predDifferential(x), label=label, **kwargs)
+        logger.info(f'Plotting the differential of the regression on the axis {ax}. The label is {label}')
 
     def addUnitToLabels(self, ax):
         self.addUnitToXLabel(ax)
         self.addUnitToYLabel(ax)
 
     def addUnitToXLabel(self, ax):
+        logger.info(f'Adding the unit of the x-data to the xlabel of the axis {ax}')
         xLabel = ax.get_xlabel()
         if xLabel:
             xLabel += ' '
@@ -167,6 +177,7 @@ class _fit():
         ax.set_xlabel(xLabel)
 
     def addUnitToYLabel(self, ax):
+        logger.info(f'Adding the unit of the y-data to the ylabel of the axis {ax}')
         yLabel = ax.get_ylabel()
         if yLabel:
             yLabel += ' '
@@ -176,8 +187,10 @@ class _fit():
 
 class dummy_fit(_fit):
     def __init__(self, x, y, p0=None):
+        logger.info(f'Creating a dummy fitting object with the data {x} and {y}')
 
         if not (isinstance(x, variable) and isinstance(y, variable)):
+            logger.error('The inputs has to be variables')
             raise ValueError('The inputs has to be variables')
 
         self.xVal = x.value
@@ -210,13 +223,17 @@ class dummy_fit(_fit):
 
 class exp_fit(_fit):
     def __init__(self, x, y, p0=[1, 1]):
+        logger.info(f'Creating a exponential fitting object with the data {x} and {y} and the initial guess of {p0}')
         if len(p0) != 2:
+            logger.error('You have to provide initial guesses for 2 parameters')
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
+            logger.error('The variable "x" cannot have a unit')
             raise ValueError('The variable "x" cannot have a unit')
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
+        logger.info('Converting the regression coefficients to variables')
         a = self.popt[0]
         b = self.popt[1]
 
@@ -250,13 +267,18 @@ class exp_fit(_fit):
 
 class pow_fit(_fit):
     def __init__(self, x, y, p0=[1, 1]):
+        logger.info(f'Creating a power fitting object with the data {x} and {y} and the initial guess of {p0}')
+
         if len(p0) != 2:
+            logger.error('You have to provide initial guesses for 2 parameters')
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
+            logger.error('The variable "x" cannot have a unit')
             raise ValueError('The variable "x" cannot have a unit')
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
+        logger.info('Converting the regression coefficients to variables')
         a = self.popt[0]
         b = self.popt[1]
 
@@ -294,16 +316,21 @@ def lin_fit(x, y, p0=None):
 
 class pol_fit(_fit):
     def __init__(self, x, y, deg=2, p0=None):
+        logger.info(f'Creating a polynomial fitting object with the data {x} and {y} and the initial guess of {p0}')
         if p0 is None:
             p0 = [1] * (deg + 1)
         if len(p0) != (deg + 1):
+            logger.error(f'You have to provide initial guesses for {deg + 1} parameters')
             raise ValueError(f'You have to provide initial guesses for {deg + 1} parameters')
         if deg + 1 != len(p0):
+            logger.error('The length of the initial guess has to have one more element than the polynomial degree')
             raise ValueError('The length of the initial guess has to have one more element than the polynomial degree')
+
         self.deg = deg
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
+        logger.info('Converting the regression coefficients to variables')
         popt = []
         n = self.deg
         u = unitConversion()
@@ -320,6 +347,11 @@ class pol_fit(_fit):
         out = 0
         n = self.deg
         for i in range(n + 1):
+            # if isinstance(x, variable):
+            #     print(f'B{i}: {B[i]}')
+            #     print(f'x**({n-i}): {(x**(n-i)).uncert}')
+            #     val = B[i] * x**(n - i)
+            #     print(f'B{i}*x**({n-i}): {val.uncert}')
             out += B[i] * x**(n - i)
         return out
 
@@ -374,13 +406,17 @@ class pol_fit(_fit):
 
 class logistic_fit(_fit):
     def __init__(self, x, y, p0=[1, 1, 1]):
+        logger.info(f'Creating a logistic fitting object with the data {x} and {y} and the initial guess of {p0}')
         if len(p0) != 3:
+            logger.error('You have to provide initial guesses for 3 parameters')
             raise ValueError('You have to provide initial guesses for 3 parameters')
         if x.unit != '1':
+            logger.error('The variable "x" cannot have a unit')
             raise ValueError('The variable "x" cannot have a unit')
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
+        logger.info('Converting the regression coefficients to variables')
         L = self.popt[0]
         k = self.popt[1]
         x0 = self.popt[2]
@@ -436,13 +472,18 @@ class logistic_fit(_fit):
 
 class logistic_100_fit(_fit):
     def __init__(self, x, y, p0=[0, 0]):
+        logger.info(f'Creating a logistic100 fitting object with the data {x} and {y} and the initial guess of {p0}')
+
         if len(p0) != 2:
+            logger.error('You have to provide initial guesses for 2 parameters')
             raise ValueError('You have to provide initial guesses for 2 parameters')
         if x.unit != '1':
+            logger.error('The variable "x" cannot have a unit')
             raise ValueError('The variable "x" cannot have a unit')
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
+        logger.info('Converting the regression coefficients to variables')
         k = self.popt[0]
         x0 = self.popt[1]
 

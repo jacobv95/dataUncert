@@ -1,9 +1,7 @@
+import logging
+logging.disable(logging.CRITICAL)
 import unittest
-import numpy as np
-try:
-    from pyees.unitSystem import unit
-except ModuleNotFoundError:
-    from unitSystem import unit
+from dataUncert.unitSystem import unit
 
 
 class test(unittest.TestCase):
@@ -22,7 +20,7 @@ class test(unittest.TestCase):
     def testPower(self):
         A = unit()
         with self.assertRaises(Exception) as context:
-            A._power('L-kg/min', 1.5)
+            a = A._power('L-kg/min', 1.5)
         self.assertEqual('The power has to be an integer', str(context.exception))
         a = A._power('L-kg/min', 2)
         self.assertEqual(a, 'L2-kg2/min2')
@@ -46,11 +44,13 @@ class test(unittest.TestCase):
         A = unit()
         a = 'L/min'
         b = 'kg-m/L'
+
         """
         L/min / (kg-m/L)
         L/min * L/kg-m
         L2 / min-kg-m
         """
+
         c = A._divide(a, b)
         self.assertEqual(c, 'L2/min-kg-m')
 
@@ -91,10 +91,10 @@ class test(unittest.TestCase):
         self.assertAlmostEqual(a, 1 * 100000 * 1 * 1 / (60 * 60)**2 * (1000)**3)
         self.assertEqual(A.assertEqual(b, 'kg2/s4-m10'), True)
         'pa-kg/s2-(m3)3'
-        '(N/m)-kg/s2-m9'
-        'N-kg/s2-m9'
-        '(kg/m-s2)-kg/(s2-m9)'
-        'kg2/(s4-m10)'
+        '(N/m2)-kg/s2-m9'
+        'N-kg/s2-m11'
+        '(kg/m-s2)-kg/(s2-m11)'
+        'kg2/(s4-m12)'
         with self.assertRaises(Exception) as context:
             a, b = A.convertToSI(1, 'aL')
         self.assertEqual(f'The unit (aL) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix (a) was not found', str(context.exception))

@@ -1,16 +1,16 @@
+import logging
+logger = logging.getLogger(__name__)
 import numpy as np
 import openpyxl
 import xlrd
 import os.path
 import re
 import string
-try:
-    from dataUncert.variable import variable
-except ModuleNotFoundError:
-    from variable import variable
+from dataUncert.variable import variable
 
 
 def readData(xlFile, dataRange, uncertRange=None):
+    logging.info(f'Creating a data object from the file {xlFile} with the dataRange {dataRange} and the uncertRange {uncertRange}')
     dat = _readData(xlFile, dataRange, uncertRange)
     return dat.dat
 
@@ -20,22 +20,26 @@ class _readData():
     def __init__(self, xlFile, dataRange, uncertRange=None) -> None:
 
         if not '-' in dataRange:
+            logger.error('The data range has to include a hyphen (-)')
             raise ValueError('The data range has to include a hyphen (-)')
         index = dataRange.find('-')
         dataStartCol = dataRange[0:index]
         dataEndCol = dataRange[index + 1:]
 
         if '-' in dataStartCol or '-' in dataEndCol:
+            logger.error('The data range can only include a singly hyphen (-)')
             raise ValueError('The data range can only include a singly hyphen (-)')
 
         if not uncertRange is None:
             if not '-' in uncertRange:
+                logger.error('The uncertanty range has to include a hyphen (-)')
                 raise ValueError('The uncertanty range has to include a hyphen (-)')
             index = uncertRange.find('-')
             uncertStartCol = uncertRange[0:index]
             uncertEndCol = uncertRange[index + 1:]
 
             if '-' in uncertStartCol or '-' in uncertEndCol:
+                logger.error('The data range can only include a singly hyphen (-)')
                 raise ValueError('The data range can only include a singly hyphen (-)')
         else:
             uncertStartCol = None
@@ -50,6 +54,7 @@ class _readData():
         # check the uncertanty range
         uncertCols = [self.uncertStartCol is None, self.uncertEndCol is None]
         if sum(uncertCols) not in [0, 2]:
+            logger.error('You have provided one of the coloumn for the uncertanty but not the other')
             raise ValueError('You have provided one of the coloumn for the uncertanty but not the other')
 
         # check the number of coloumns
@@ -57,6 +62,7 @@ class _readData():
         if not self.uncertStartCol is None:
             nColsUncert = self.uncertEndCol - self.uncertStartCol + 1
             if nColsData != nColsUncert:
+                logger.error('The number of coloumns of the data is not equal to the number of coloumns for the uncertanty')
                 raise ValueError('The number of coloumns of the data is not equal to the number of coloumns for the uncertanty')
         self.nCols = nColsData
 
@@ -64,6 +70,7 @@ class _readData():
         extension = os.path.splitext(xlFile)[1]
         supportedExtensions = ['.xls', '.xlsx']
         if extension not in supportedExtensions:
+            logger.error(f'The file extension is not supported. The supported extension are {supportedExtensions}')
             raise ValueError(f'The file extension is not supported. The supported extension are {supportedExtensions}')
 
         # parse functions for the specific extension and get all sheets
@@ -98,12 +105,15 @@ class _readData():
         self.readCol = readCol
 
         # read the data
+        logger.debug(
+            f'reading data from the file {xlFile}. The data is read from coloum {self.dataStartCol} to coloumn {self.dataEndCol}. The uncertanty is read from coloumn {self.uncertStartCol} to coloumn {self.uncertEndCol}')
         self.readData()
 
     def colToIndex(self, col):
         if col is None:
             return None
         if not isinstance(col, str):
+            logger.error('The coloumn has to be a string')
             raise ValueError('The coloumn has to be a string')
         num = 0
         for c in col:
@@ -180,8 +190,9 @@ class _readData():
     def readData(self):
         self.dat = _Data()
 
+        logger.debug('Looping over the sheets in the data file')
         for i, sheet in enumerate(self.sheets):
-
+            logger.debug(f'Opening the sheet {sheet}')
             sheetData = _Sheet(f's{i+1}')
 
             # determine the number of variables
@@ -197,8 +208,10 @@ class _readData():
                 nDataPoint = sum([1 if elem not in ['', None] else 0 for elem in nDataPoint])
                 nDataPoints.append(nDataPoint)
             if not all(elem == nDataPoints[0] for elem in nDataPoints):
+                logger.error('There are not an equal amount of rows in the data')
                 raise ValueError('There are not an equal amount of rows in the data')
             nDataPoint = nDataPoints[0]
+            logger.debug(f'A total of {nDataPoint} rows of data are found in the sheet {sheet}')
 
             # read the data
             data = np.zeros([nDataPoint, self.nCols])
@@ -214,14 +227,19 @@ class _readData():
                     nUncertanty = sum([1 if elem not in ['', None] else 0 for elem in nUncertanty])
                     nUncertanties.append(nUncertanty)
                 if not all(elem == nUncertanties[0] for elem in nUncertanties):
+                    logger.error('There are not an equal amount of rows in the uncertanty')
                     raise ValueError('There are not an equal amount of rows in the uncertanty')
                 nUncertanty = nUncertanties[0]
+                logger.debug(f'A total of {nUncertanty} rows of uncertanty are found in the sheet {sheet}')
 
                 # evaluate the number of rows of the uncertanty
                 if nUncertanty not in [nDataPoint, nDataPoint * self.nCols]:
+                    logger.error('The number of rows in the uncertanty has to be equal to the number of rows of data or equal to the number of rows of data multiplied with the number of coloumns in the data')
                     raise ValueError('The number of rows in the uncertanty has to be equal to the number of rows of data or equal to the number of rows of data multiplied with the number of coloumns in the data')
 
                 if nUncertanty == nDataPoint:
+                    logger.debug(f'There is one row of uncertanty for each row of data. Therefore there are no covariance data in the sheet {sheet}')
+
                     # read the uncertanty
                     uncert = np.zeros([nDataPoint, self.nCols])
                     for i in range(nDataPoint):
@@ -238,6 +256,8 @@ class _readData():
 
                         sheetData._addMeasurement(name, var)
                 else:
+                    logger.debug(f'There is {self.nCols} rows of uncertanty for each row of data. Therefore there are covariance data in the sheet {sheet}')
+
                     # read the uncertanty
                     uncert = []
                     for i in range(nDataPoint):
@@ -252,6 +272,7 @@ class _readData():
                         if (elem.shape == elem.transpose().shape) and (elem == elem.transpose()).all():
                             pass
                         else:
+                            logger.error('The covariances has to be symmetric')
                             raise ValueError('The covariances has to be symmetric')
 
                     # create the measurements with covariance uncertanties
@@ -274,6 +295,8 @@ class _readData():
                     for head, var in zip(headers, vars):
                         sheetData._addMeasurement(head, var)
             else:
+                logger.debug(f'There are no uncertaty data in the sheet {sheet}')
+
                 # create the measurements without uncertanties
                 for i in range(self.nCols):
                     name = headers[i]
@@ -289,13 +312,17 @@ class _Data():
     def __init__(self, name=''):
         self.name = name
         self.sheets = []
+        logger.debug(f'Creating a data object {self}')
 
     def _addSheet(self, name, sheet):
+        logger.debug(f'Adding a sheet with the name {name} to the data object {self}')
         sheet.name = name
         sheetNames = [elem.name for elem in self.sheets]
         if name in sheetNames:
             index = sheetNames.index(name)
             self.sheets[index] = sheet
+            logger.warning(f'A sheet with the name {name} already existed in the object {self}. The first sheet with the same name is overwritten.')
+            raise Warning(f'A sheet with the name {name} already existed in the object {self}. The first sheet with the same name is overwritten.')
         else:
             self.sheets.append(sheet)
         setattr(self, name, sheet)
@@ -305,30 +332,19 @@ class _Data():
             sheet.printContents(self.name)
             print('')
 
-    def __setattr__(self, name, value) -> None:
-        if isinstance(value, _Data):
-
-            value.name = name
-            sheetNames = [elem.name for elem in self.sheets]
-            if name in sheetNames:
-                index = sheetNames.index(name)
-                self.sheets[index] = value
-            else:
-                self.sheets.append(value)
-
-        self.__dict__[name] = value
-
     def __iter__(self):
         return iter(self.sheets)
 
 
 class _Sheet():
     def __init__(self, name=''):
+        logger.debug(f'Creating a sheet object {self}')
         self.name = name
         self.measurements = []
         self.measurementNames = []
 
     def _addMeasurement(self, name, var):
+        logger.debug(f'Adding a measurement with the name {name} to the sheet object {self}')
         self.measurements.append(var)
         self.measurementNames.append(name)
         setattr(self, name, var)
@@ -341,12 +357,9 @@ class _Sheet():
             else:
                 print(f'{suffix}.{self.name}.{name}')
 
-    def __setattr__(self, name, value) -> None:
-
-        self.__dict__[name] = value
-
     def __getitem__(self, index):
 
+        logger.info(f'Indexing the sheet {self} with the indexes {index}')
         measurements = []
         for meas in self.measurements:
             val = meas.value[index]
@@ -364,11 +377,13 @@ class _Sheet():
     def append(self, other):
 
         if not isinstance(other, _Sheet):
+            logger.error('You can only append two sheets together')
             raise ValueError('You can only append two sheets together')
 
         # Test if all names are the same
         for elem in self.measurementNames:
             if elem not in other.measurementNames:
+                logger.error('You can only append sheets with the excact same measurements. The names did not match')
                 raise ValueError('You can only append sheets with the excact same measurements. The names did not match')
 
         # get the measurements in the same order
@@ -381,6 +396,7 @@ class _Sheet():
         # test if all units are the same
         for elemA, elemB in zip(measA, measB):
             if elemA.unit != elemB.unit:
+                logger.error('You can only append sheets with the excact same measurements. The units did not match')
                 raise ValueError('You can only append sheets with the excact same measurements. The units did not match')
 
         # append the data

@@ -1,6 +1,8 @@
+import logging
+logging.disable(logging.ERROR)
 import unittest
 import numpy as np
-from fit import *
+from dataUncert.fit import *
 
 
 class test(unittest.TestCase):
@@ -19,7 +21,6 @@ class test(unittest.TestCase):
             self.assertEqual(Fa.unit, 'C')
             self.assertAlmostEqual(Fa.uncert, 1 / np.sqrt(i))
             self.assertAlmostEqual(F.r_squared, 1)
-            
 
     def testLinFit(self):
         a = 2

@@ -1,10 +1,9 @@
+import logging
+logging.disable(logging.CRITICAL)
 import unittest
 import numpy as np
 from random import uniform
-try:
-    from dataUncert.variable import variable
-except ModuleNotFoundError:
-    from variable import variable
+from dataUncert.variable import variable
 
 
 class test(unittest.TestCase):

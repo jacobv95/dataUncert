@@ -1,9 +1,9 @@
+import logging
+logging.disable(logging.CRITICAL)
 import unittest
 import numpy as np
-try:
-    from dataProcessing.readData import readData
-except ModuleNotFoundError:
-    from readData import readData
+from dataUncert.readData import readData
+
 
 
 class test(unittest.TestCase):

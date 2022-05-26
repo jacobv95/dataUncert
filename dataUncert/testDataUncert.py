@@ -1,8 +1,10 @@
+import logging
+logging.disable(logging.CRITICAL)
 import unittest
-from testFit import test as testFit
-from testReadData import test as testReadData
-from testUnitSystem import test as testUnitSystem
-from testVariable import test as testVariable
+from dataUncert.testFit import test as testFit
+from dataUncert.testReadData import test as testReadData
+from dataUncert.testUnitSystem import test as testUnitSystem
+from dataUncert.testVariable import test as testVariable
 
 
 def main():
