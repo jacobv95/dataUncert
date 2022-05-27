@@ -1,19 +1,19 @@
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from dataUncert.unitSystem import unit as unitConversion
+from dataUncert.unit import unit
 
 
 class variable():
-    def __init__(self, value, unit, uncert=None, nDigits=3) -> None:
+    def __init__(self, value, unitStr, uncert=None, nDigits=3) -> None:
 
-        logger.info(f'Creating variable with a value of {value}, a unit of "{unit}" and an uncertanty of {uncert}')
+        logger.info(f'Creating variable with a value of {value}, a unit of "{unitStr}" and an uncertanty of {uncert}')
 
-        self.unitConversion = unitConversion()
-        if unit == '':
-            unit = '1'
-        self.unit = unit
-        self.unitConversion._isUnitKnown(self.unit)
+        if isinstance(unitStr, unit):
+            self.unit = unitStr
+        else:
+            self.unit = unit(unitStr)
+
         self.nDigits = nDigits
 
         # uncertanty
@@ -57,24 +57,14 @@ class variable():
     def convert(self, newUnit):
         oldUnit = self.unit
         oldValue = self.value
+        oldUncert = self.uncert
 
-        # determine if the base unit of the variable is equal to the base unit of the new unit
-        if not self.unitConversion.assertUnitsSI(self.unit, newUnit):
-            logger.error(f'You cannot convert from [{self.unit}] to [{newUnit}]')
-            raise ValueError(f'You cannot convert from [{self.unit}] to [{newUnit}]')
+        converter = self.unit.getConverter(newUnit)
+        self.value = converter.convert(self.value, useOffset=not self.unit.isCombinationUnit())
+        self.uncert = converter.convert(self.uncert, useOffset=False)
+        self.unit = unit(newUnit)
 
-        # convert the variable to the base unit
-        self.value, _ = self.unitConversion.convertToSI(self.value, self.unit)
-        self.uncert, self.unit = self.unitConversion.convertToSI(self.uncert, self.unit, isUncert=True)
-
-        # convert the variable to the new unit
-        self.value, _ = self.unitConversion.convertFromSI(self.value, newUnit)
-        self.uncert, _ = self.unitConversion.convertFromSI(self.uncert, newUnit, isUncert=True)
-
-        u, l = self.unitConversion._splitCompositeUnit(newUnit)
-        self.unit = self.unitConversion._combineUpperAndLower(u, l)
-
-        logger.info(f'Converted the varible from {oldValue} [{oldUnit}] to {self.value} [{self.unit}]')
+        logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self.value} +/- {self.uncert} [{self.unit}]')
 
     def __getitem__(self, items):
         if isinstance(self.value, np.ndarray):
@@ -123,40 +113,13 @@ class variable():
 
         # standard values
         uncert = None
-        unit = self.unit if self.unit != '1' else ''
+        unitStr = self.unit.__str__(pretty=pretty)
 
         if pretty:
             pm = r'\pm'
             space = r'\ '
             squareBracketLeft = r'\left ['
             squareBracketRight = r'\right ]'
-            upper, lower = self.unitConversion._splitCompositeUnit(unit)
-            if len(lower) != 0:
-                # a fraction is needed
-                unit = rf'\frac{{'
-                for i, up in enumerate(upper):
-                    up, exp = self.unitConversion._removeExponentFromUnit(up)
-                    if exp > 1:
-                        up = rf'{up}^{exp}'
-                    unit += rf'{up}'
-                    if i != len(upper) - 1:
-                        unit += rf' \cdot '
-                unit += rf'}}{{'
-                for i, low in enumerate(lower):
-                    low, exp = self.unitConversion._removeExponentFromUnit(low)
-                    if exp > 1:
-                        low = rf'{low}^{exp}'
-                    unit += rf'{low}'
-                    if i != len(lower) - 1:
-                        unit += rf' \cdot '
-                unit += rf'}}'
-            else:
-                # no fraction
-                unit = r''
-                for i, up in enumerate(upper):
-                    unit += rf'{up}'
-                    if i != len(upper) - 1:
-                        unit += rf' \cdot '
 
         else:
             pm = '+/-'
@@ -172,9 +135,9 @@ class variable():
 
             value, uncert = self.printUncertanty(value, uncert)
             if uncert is None:
-                return rf'{value}{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                return rf'{value}{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
             else:
-                return rf'{value} {pm} {uncert}{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                return rf'{value} {pm} {uncert}{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
 
         else:
             # print array of values
@@ -193,7 +156,7 @@ class variable():
                     if i != len(valStr) - 1:
                         out += rf', '
                 out += rf']'
-                out += rf'{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                out += rf'{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
                 return out
             else:
                 # find number of significant digits in uncertanty
@@ -211,7 +174,7 @@ class variable():
                     if i != len(uncStr) - 1:
                         out += r', '
                 out += rf']'
-                out += rf'{space}{squareBracketLeft}{unit}{squareBracketRight}'
+                out += rf'{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
                 return out
 
     def _addDependents(self, L, grad):
@@ -275,19 +238,17 @@ class variable():
         logger.info(f'Adding together {self} and {other}')
         logger.debug(f'Begin adding {self} and {other}')
         if isinstance(other, variable):
-            if not self.unitConversion.assertEqual(self.unit, other.unit):
+            try:
+                outputUnit = self.unit + other.unit
+            except ValueError:
                 logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
                 raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
-            valSelf = self.value
-            valOther = other.value
-            unit = self.unit
-
-            val = valSelf + valOther
+            val = self.value + other.value
             grad = [1, 1]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -305,20 +266,17 @@ class variable():
         logger.info(f'Subtracting {other} from {self}')
         logger.debug(f'Begin subtracting {other} from {self}')
         if isinstance(other, variable):
-
-            if not self.unitConversion.assertEqual(self.unit, other.unit):
+            try:
+                outputUnit = self.unit - other.unit
+            except ValueError:
                 logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
                 raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
-            valSelf = self.value
-            valOther = other.value
-            unit = self.unit
-
-            val = valSelf - valOther
+            val = self.value - other.value
             grad = [1, -1]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -336,17 +294,13 @@ class variable():
         logger.info(f'Multiplying {self} and {other}')
         logger.debug(f'Begining to multiply {self} and {other}')
         if isinstance(other, variable):
-            valSelf = self.value
-            valOther = other.value
-            unitSelf = self.unit
-            unitOther = other.unit
-            unit = self.unitConversion._multiply(unitSelf, unitOther)
+            outputUnit = self.unit * other.unit
 
-            val = valSelf * valOther
-            grad = [valOther, valSelf]
+            val = self.value * other.value
+            grad = [other.value, self.value]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -362,27 +316,17 @@ class variable():
 
     def __pow__(self, other):
         logger.info(f'Raising {self} to the power of {other}')
-        logger.debug(f'Beginning to raise {self} to the power of {other}')
+
         if isinstance(other, variable):
-            valSelf = self.value
-            valOther = other.value
-            unitSelf = self.unit
-            unitOther = other.unit
-            if unitOther != '1':
+            if isinstance(other.value, np.ndarray):
+                logger.error('The exponent has to be a single number')
+                raise ValueError('The exponent has to be a single number')
+            if str(other.unit) != '1':
                 logger.error('The exponent can not have a unit')
                 raise ValueError('The exponent can not have a unit')
 
-            if unitSelf != '1':
-                if valOther == 0:
-                    unit = self.unitConversion._power(unitSelf, valOther)
-                elif valOther < 1:
-                    unit = self.unitConversion._nRoot(unitSelf, valOther)
-                else:
-                    unit = self.unitConversion._power(unitSelf, valOther)
-            else:
-                unit = '1'
-
-            val = valSelf ** valOther
+            val = self.value ** other.value
+            outputUnit = self.unit ** other.value
 
             def gradSelf(valSelf, valOther, uncertSelf):
                 if uncertSelf != 0:
@@ -396,13 +340,13 @@ class variable():
                 else:
                     return 0
 
-            gradSelf = np.vectorize(gradSelf)(valSelf, valOther, self.uncert)
-            gradOther = np.vectorize(gradOther)(valSelf, valOther, other.uncert)
+            gradSelf = np.vectorize(gradSelf)(self.value, other.value, self.uncert)
+            gradOther = np.vectorize(gradOther)(self.value, other.value, other.uncert)
 
             grad = [gradSelf, gradOther]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -414,69 +358,21 @@ class variable():
             return self ** other
 
     def __rpow__(self, other):
-        logger.info(f'Raising {other} to the power of {self}')
-        logger.debug(f'Begginig to raise {other} to the power of {self}')
-        if isinstance(other, variable):
-            valSelf = self.value
-            valOther = other.value
-            valSelf, unitSelf = self.unitConversion.convertFromSI(valSelf, self.unit)
-            valOther, unitOther = other.unitConversion.convertFromSI(valOther, other.unit)
-            if unitSelf != '1':
-                logger.error('The exponent can not have a unit')
-                raise ValueError('The exponent can not have a unit')
-            if unitOther != '1' and not valSelf.is_integer():
-                logger.error('A measurement with a unit can only be raised to an integer power')
-                raise ValueError('A measurement with a unit can only be raised to an integer power')
-            if unitOther != '1':
-                unit = unitConversion()._power(unitOther, valSelf)
-            else:
-                unit = '1'
-            val = valOther ** valSelf
-
-            def gradSelf(valSelf, valOther, uncertSelf):
-                if uncertSelf != 0:
-                    return valSelf * valOther ** (valSelf - 1)
-                else:
-                    return 0
-
-            def gradOther(valSelf, valOther, uncertOther):
-                if uncertOther != 0:
-                    return valOther ** valSelf * np.log(valOther)
-                else:
-                    return 0
-
-            gradSelf = np.vectorize(gradSelf)(valSelf, valOther, self.uncert)
-            gradOther = np.vectorize(gradOther)(valSelf, valOther, other.uncert)
-
-            grad = [gradSelf, gradOther]
-            vars = [self, other]
-
-            var = variable(val, unit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
-
-            logger.debug(f'Finished raising {other} to the power of {self}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, '1')
-            return other ** self
+        logger.debug(f'{other} is converted to a variable')
+        other = variable(other, '1')
+        return other ** self
 
     def __truediv__(self, other):
         logger.info(f'Dividing {self} with {other}')
         logger.debug(f'Beginning to divide {self} with {other}')
         if isinstance(other, variable):
-            valSelf = self.value
-            valOther = other.value
-            unitSelf = self.unit
-            unitOther = other.unit
-            unit = self.unitConversion._divide(unitSelf, unitOther)
 
-            val = valSelf / valOther
-            grad = [1 / valOther, valSelf / (valOther**2)]
+            val = self.value / other.value
+            outputUnit = self.unit / other.unit
+            grad = [1 / other.value, self.value / (other.value**2)]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -491,17 +387,13 @@ class variable():
         logger.info(f'Dividing {other} with {self}')
         logger.debug(f'Begginig to divide {other} with {self}')
         if isinstance(other, variable):
-            valSelf = self.value
-            valOther = other.value
-            valSelf, unitSelf = self.unitConversion.convertFromSI(valSelf, self.unit)
-            valOther, unitOther = other.unitConversion.convertFromSI(valOther, other.unit)
-            unit = self.unitConversion._divide(unitOther, unitSelf)
 
-            val = valOther / valSelf
-            grad = [valOther / (valSelf**2), 1 / (valSelf)]
+            val = other.value / self.value
+            outputUnit = other.unit / self.unit
+            grad = [other.value / (self.value**2), 1 / (self.value)]
             vars = [self, other]
 
-            var = variable(val, unit)
+            var = variable(val, outputUnit)
             var._addDependents(vars, grad)
             var._calculateUncertanty()
 
@@ -519,7 +411,7 @@ class variable():
     def log(self):
         logger.info(f'Taking the natural log of {self}')
         logger.debug(f'Beginning to take the natural log of {self}')
-        if self.unit != '1':
+        if self.unit.unitStr != '1':
             logger.error('You can only take the natural log of a variable if it has no unit')
             raise ValueError('You can only take the natural log of a variable if it has no unit')
         val = np.log(self.value)
@@ -537,7 +429,7 @@ class variable():
     def log10(self):
         logger.info(f'Taking the base 10 log of {self}')
         logger.debug(f'Beginning to take the base 10 log of {self}')
-        if self.unit != '1':
+        if self.unit.unitStr != '1':
             logger.error('You can only take the base 10 log of a variable if it has no unit')
             raise ValueError('You can only take the base 10 log of a variable if it has no unit')
         val = np.log10(self.value)

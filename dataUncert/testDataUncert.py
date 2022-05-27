@@ -3,7 +3,7 @@ logging.disable(logging.CRITICAL)
 import unittest
 from dataUncert.testFit import test as testFit
 from dataUncert.testReadData import test as testReadData
-from dataUncert.testUnitSystem import test as testUnitSystem
+from dataUncert.testUnit import test as testUnit
 from dataUncert.testVariable import test as testVariable
 
 

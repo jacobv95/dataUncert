@@ -4,7 +4,9 @@ import numpy as np
 import scipy.odr as odr
 import string
 from dataUncert.variable import variable
-from dataUncert.unitSystem import unit as unitConversion
+from dataUncert.unit import unit
+
+# TODO implemente the new unit class
 
 
 class _fit():

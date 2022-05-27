@@ -8,6 +8,8 @@ import re
 import string
 from dataUncert.variable import variable
 
+# TODO implement the new unit class
+
 
 def readData(xlFile, dataRange, uncertRange=None):
     logging.info(f'Creating a data object from the file {xlFile} with the dataRange {dataRange} and the uncertRange {uncertRange}')
