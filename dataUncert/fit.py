@@ -6,8 +6,6 @@ import string
 from dataUncert.variable import variable
 from dataUncert.unit import unit
 
-# TODO implemente the new unit class
-
 
 class _fit():
     def __init__(self, func, x, y, p0) -> None:
@@ -335,13 +333,11 @@ class pol_fit(_fit):
         logger.info('Converting the regression coefficients to variables')
         popt = []
         n = self.deg
-        u = unitConversion()
         for i in range(n + 1):
             value = self.popt[i]
             uncert = self.uPopt[i]
-            lower = u._power(self.xUnit, n - i)
-            unit = u._divide(self.yUnit, lower)
-            var = variable(value, unit, uncert)
+            u = self.yUnit / (self.xUnit ** (n - i))
+            var = variable(value, u, uncert)
             popt.append(var)
         self.popt = popt
 

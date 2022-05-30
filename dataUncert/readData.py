@@ -8,8 +8,6 @@ import re
 import string
 from dataUncert.variable import variable
 
-# TODO implement the new unit class
-
 
 def readData(xlFile, dataRange, uncertRange=None):
     logging.info(f'Creating a data object from the file {xlFile} with the dataRange {dataRange} and the uncertRange {uncertRange}')
@@ -397,7 +395,7 @@ class _Sheet():
 
         # test if all units are the same
         for elemA, elemB in zip(measA, measB):
-            if elemA.unit != elemB.unit:
+            if str(elemA.unit) != str(elemB.unit):
                 logger.error('You can only append sheets with the excact same measurements. The units did not match')
                 raise ValueError('You can only append sheets with the excact same measurements. The units did not match')
 

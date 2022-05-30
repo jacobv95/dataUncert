@@ -18,7 +18,7 @@ class test(unittest.TestCase):
             F = pol_fit(x, y, deg=0)
             Fa = F.popt[0]
             self.assertAlmostEqual(Fa.value, 10)
-            self.assertEqual(Fa.unit, 'C')
+            self.assertEqual(str(Fa.unit), 'C')
             self.assertAlmostEqual(Fa.uncert, 1 / np.sqrt(i))
             self.assertAlmostEqual(F.r_squared, 1)
 
@@ -38,11 +38,11 @@ class test(unittest.TestCase):
         Fb = F.popt[1]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(Fa.unit, 'C/m')
+        self.assertEqual(str(Fa.unit), 'C/m')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
-        self.assertEqual(Fb.unit, 'C')
+        self.assertEqual(str(Fb.unit), 'C')
         self.assertAlmostEqual(Fb.uncert, 0)
 
         self.assertAlmostEqual(F.r_squared, 1)
@@ -65,15 +65,15 @@ class test(unittest.TestCase):
         Fc = F.popt[2]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(Fa.unit, 'C/m2')
+        self.assertEqual(str(Fa.unit), 'C/m2')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
-        self.assertEqual(Fb.unit, 'C/m')
+        self.assertEqual(str(Fb.unit), 'C/m')
         self.assertAlmostEqual(Fb.uncert, 0)
 
         self.assertAlmostEqual(Fc.value, 15)
-        self.assertEqual(Fc.unit, 'C')
+        self.assertEqual(str(Fc.unit), 'C')
         self.assertAlmostEqual(Fc.uncert, 0)
 
         self.assertAlmostEqual(F.r_squared, 1)
@@ -98,19 +98,19 @@ class test(unittest.TestCase):
         Fd = F.popt[3]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(Fa.unit, 'C/m3')
+        self.assertEqual(str(Fa.unit), 'C/m3')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
-        self.assertEqual(Fb.unit, 'C/m2')
+        self.assertEqual(str(Fb.unit), 'C/m2')
         self.assertAlmostEqual(Fb.uncert, 0)
 
         self.assertAlmostEqual(Fc.value, 15)
-        self.assertEqual(Fc.unit, 'C/m')
+        self.assertEqual(str(Fc.unit), 'C/m')
         self.assertAlmostEqual(Fc.uncert, 0)
 
         self.assertAlmostEqual(Fd.value, 50)
-        self.assertEqual(Fd.unit, 'C')
+        self.assertEqual(str(Fd.unit), 'C')
         self.assertAlmostEqual(Fd.uncert, 0)
 
         self.assertAlmostEqual(F.r_squared, 1)

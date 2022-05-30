@@ -558,7 +558,7 @@ class unit():
         lowerReduced = []
         lowerPrefixReduced = []
         lowerExpReduced = []
-        done = False
+        done = not lower
         while not done:
             # get the next unit
             low = lower[0]

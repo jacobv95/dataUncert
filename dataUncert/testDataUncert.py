@@ -11,7 +11,7 @@ def main():
     tests = [
         testFit,
         testReadData,
-        testUnitSystem,
+        testUnit,
         testVariable
     ]
 

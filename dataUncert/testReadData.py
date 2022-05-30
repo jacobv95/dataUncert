@@ -5,26 +5,25 @@ import numpy as np
 from dataUncert.readData import readData
 
 
-
 class test(unittest.TestCase):
 
     def testReadFileTypes(self):
         # xlsx file
         dat = readData('testData/data1.xlsx', 'A-B')
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3, 4, 5])
-        self.assertEqual(dat.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0, 0, 0, 0, 0])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7, 8, 9])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0, 0, 0, 0, 0])
 
         # xls file
         dat = readData('testData/data1.xls', 'A-B')
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3, 4, 5])
-        self.assertEqual(dat.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0, 0, 0, 0, 0])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7, 8, 9])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0, 0, 0, 0, 0])
 
         # csv file
@@ -35,19 +34,19 @@ class test(unittest.TestCase):
     def testReadUncertanty(self):
         dat = readData('testData/data3.xlsx', 'A-B', 'C-D')
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3, 4, 5])
-        self.assertEqual(dat.s1.a.unit, 'm')
+        self.assertEqual(str(dat.s1.a.unit), 'm')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0.05, 0.1, 0.15, 0.2, 0.25])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7, 8, 9])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0.5, 0.6, 0.7, 0.8, 0.9])
 
         dat = readData('testData/data4.xlsx', 'A-B', 'C-D')
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3, 4, 5])
-        self.assertEqual(dat.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0.05, 0.1, 0.15, 0.2, 0.25])
         np.testing.assert_almost_equal(dat.s1.a.covariance[dat.s1.b], [0.025, 0.06, 0.105, 0.16, 0.225])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7, 8, 9])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0.5, 0.6, 0.7, 0.8, 0.9])
         np.testing.assert_almost_equal(dat.s1.b.covariance[dat.s1.a], [0.025, 0.06, 0.105, 0.16, 0.225])
 
@@ -60,10 +59,10 @@ class test(unittest.TestCase):
         dat2 = readData('testData/data2.xlsx', 'A-B')
         dat1.s1.append(dat2.s1)
         np.testing.assert_array_equal(dat1.s1.a.value, [1, 2, 3, 4, 5, 1, 2, 3, 4, 5])
-        self.assertEqual(dat1.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat1.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat1.s1.a.uncert, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_equal(dat1.s1.b.value, [5, 6, 7, 8, 9, 5, 6, 7, 8, 9])
-        self.assertEqual(dat1.s1.b.unit, 'mA')
+        self.assertEqual(str(dat1.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat1.s1.b.uncert, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
         dat4 = readData('testData/data4.xlsx', 'A-B')
@@ -82,10 +81,10 @@ class test(unittest.TestCase):
         dat4 = readData('testData/data4.xlsx', 'A-B', 'C-D')
         dat2.s1.append(dat4.s1)
         np.testing.assert_array_equal(dat2.s1.a.value, [1, 2, 3, 4, 5, 1, 2, 3, 4, 5])
-        self.assertEqual(dat2.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat2.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat2.s1.a.uncert, [0.05, 0.1, 0.15, 0.2, 0.25, 0.05, 0.1, 0.15, 0.2, 0.25])
         np.testing.assert_array_equal(dat2.s1.b.value, [5, 6, 7, 8, 9, 5, 6, 7, 8, 9])
-        self.assertEqual(dat2.s1.b.unit, 'mA')
+        self.assertEqual(str(dat2.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat2.s1.b.uncert, [0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9])
         np.testing.assert_almost_equal(dat2.s1.a.covariance[dat2.s1.b], [0, 0, 0, 0, 0, 0.025, 0.06, 0.105, 0.16, 0.225])
         np.testing.assert_almost_equal(dat2.s1.b.covariance[dat2.s1.a], [0, 0, 0, 0, 0, 0.025, 0.06, 0.105, 0.16, 0.225])
@@ -94,10 +93,10 @@ class test(unittest.TestCase):
         dat4 = readData('testData/data4.xlsx', 'A-B', 'C-D')
         dat4.s1.append(dat2.s1)
         np.testing.assert_array_equal(dat4.s1.a.value, [1, 2, 3, 4, 5, 1, 2, 3, 4, 5])
-        self.assertEqual(dat4.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat4.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat4.s1.a.uncert, [0.05, 0.1, 0.15, 0.2, 0.25, 0.05, 0.1, 0.15, 0.2, 0.25])
         np.testing.assert_array_equal(dat4.s1.b.value, [5, 6, 7, 8, 9, 5, 6, 7, 8, 9])
-        self.assertEqual(dat4.s1.b.unit, 'mA')
+        self.assertEqual(str(dat4.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat4.s1.b.uncert, [0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9])
         np.testing.assert_almost_equal(dat4.s1.a.covariance[dat4.s1.b], [0.025, 0.06, 0.105, 0.16, 0.225, 0, 0, 0, 0, 0])
         np.testing.assert_almost_equal(dat4.s1.b.covariance[dat4.s1.a], [0.025, 0.06, 0.105, 0.16, 0.225, 0, 0, 0, 0, 0])
@@ -105,10 +104,10 @@ class test(unittest.TestCase):
         dat4_2 = readData('testData/data4.xlsx', 'A-B', 'C-D')
         dat4.s1.append(dat4_2.s1)
         np.testing.assert_array_equal(dat4.s1.a.value, [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5])
-        self.assertEqual(dat4.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat4.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat4.s1.a.uncert, [0.05, 0.1, 0.15, 0.2, 0.25, 0.05, 0.1, 0.15, 0.2, 0.25, 0.05, 0.1, 0.15, 0.2, 0.25])
         np.testing.assert_array_equal(dat4.s1.b.value, [5, 6, 7, 8, 9, 5, 6, 7, 8, 9, 5, 6, 7, 8, 9])
-        self.assertEqual(dat4.s1.b.unit, 'mA')
+        self.assertEqual(str(dat4.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat4.s1.b.uncert, [0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.7, 0.8, 0.9])
         np.testing.assert_almost_equal(dat4.s1.a.covariance[dat4.s1.b], [0.025, 0.06, 0.105, 0.16, 0.225, 0, 0, 0, 0, 0, 0.025, 0.06, 0.105, 0.16, 0.225])
         np.testing.assert_almost_equal(dat4.s1.b.covariance[dat4.s1.a], [0.025, 0.06, 0.105, 0.16, 0.225, 0, 0, 0, 0, 0, 0.025, 0.06, 0.105, 0.16, 0.225])
@@ -116,18 +115,18 @@ class test(unittest.TestCase):
     def testIndex(self):
         dat = readData('testData/data1.xlsx', 'A-B')
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3, 4, 5])
-        self.assertEqual(dat.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0, 0, 0, 0, 0])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7, 8, 9])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0, 0, 0, 0, 0])
 
         dat.s1 = dat.s1[0:3]
         np.testing.assert_array_equal(dat.s1.a.value, [1, 2, 3])
-        self.assertEqual(dat.s1.a.unit, 'L/min')
+        self.assertEqual(str(dat.s1.a.unit), 'L/min')
         np.testing.assert_array_equal(dat.s1.a.uncert, [0, 0, 0])
         np.testing.assert_array_equal(dat.s1.b.value, [5, 6, 7])
-        self.assertEqual(dat.s1.b.unit, 'mA')
+        self.assertEqual(str(dat.s1.b.unit), 'mA')
         np.testing.assert_array_equal(dat.s1.b.uncert, [0, 0, 0])
 
     def testIterable(self):
@@ -137,11 +136,11 @@ class test(unittest.TestCase):
             for i, meas in enumerate(sheet):
                 if i == 0:
                     np.testing.assert_array_equal(meas.value, [1, 2, 3, 4, 5])
-                    self.assertEqual(meas.unit, 'L/min')
+                    self.assertEqual(str(meas.unit), 'L/min')
                     np.testing.assert_array_equal(meas.uncert, [0, 0, 0, 0, 0])
                 else:
                     np.testing.assert_array_equal(meas.value, [5, 6, 7, 8, 9])
-                    self.assertEqual(meas.unit, 'mA')
+                    self.assertEqual(str(meas.unit), 'mA')
                     np.testing.assert_array_equal(meas.uncert, [0, 0, 0, 0, 0])
 
 
