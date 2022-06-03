@@ -7,36 +7,39 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-# custom formatting of the stream in order to add the stack trace
-class myStreamFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        if record.levelno in (logging.ERROR, logging.CRITICAL):
-            stack = filter(
-                lambda line: ("lib/logging/__init__.py" not in line)
-                and ("lib\\logging\\__init__.py") not in line,
-                traceback.format_stack()[:-1]
-            )
-            stack = ''.join(stack)
-            stack = stack.split('\n')
-            stack = stack[:len(stack) - 3]
-            stack = '\n'.join(stack)
-            return record.msg + "\nOrigin :\n" + "".join(stack)
+def addStreamHandler(lgr):
+    # custom formatting of the stream in order to add the stack trace
+    class myStreamFormatter(logging.Formatter):
+        def format(self, record: logging.LogRecord) -> str:
+            if record.levelno in (logging.ERROR, logging.CRITICAL):
+                stack = filter(
+                    lambda line: ("lib/logging/__init__.py" not in line)
+                    and ("lib\\logging\\__init__.py") not in line,
+                    traceback.format_stack()[:-1]
+                )
+                stack = ''.join(stack)
+                stack = stack.split('\n')
+                stack = stack[:len(stack) - 3]
+                stack = '\n'.join(stack)
+                return record.msg + "\nOrigin :\n" + "".join(stack)
+
+    # overload the streamhandler class in order to exit after emitting
+
+    class myStreamHandler(logging.StreamHandler):
+        def emit(self, record):
+            super().emit(record)
+            if record.levelno in (logging.ERROR, logging.CRITICAL):
+                raise SystemExit(-1)
+
+    # Create a stream formatter with a level of ERROR
+    streamFormatter = myStreamFormatter()
+    streamHandler = myStreamHandler()
+    streamHandler.setLevel(logging.ERROR)
+    streamHandler.setFormatter(streamFormatter)
+    lgr.addHandler(streamHandler)
 
 
-# overload the streamhandler class in order to exit after emitting
-class myStreamHandler(logging.StreamHandler):
-    def emit(self, record):
-        super().emit(record)
-        if record.levelno in (logging.ERROR, logging.CRITICAL):
-            raise SystemExit(-1)
-
-
-# Create a stream formatter with a level of ERROR
-streamFormatter = myStreamFormatter()
-streamHandler = myStreamHandler()
-streamHandler.setLevel(logging.ERROR)
-streamHandler.setFormatter(streamFormatter)
-logger.addHandler(streamHandler)
+addStreamHandler(logger)
 
 
 def setLogLevel(level):
@@ -73,9 +76,9 @@ def setLogLevel(level):
     # change the order of the filehandler and the streamhandler
     # this is necessary in order to add the stack trace to both the log and the console before exiting
     logger = logging.getLogger(__name__)
-    logger.removeHandler(streamHandler)
+    logger.handlers = []
     logger.addHandler(fileHandler)
-    logger.addHandler(streamHandler)
+    addStreamHandler(logger)
 
 
 # import the necessary modules

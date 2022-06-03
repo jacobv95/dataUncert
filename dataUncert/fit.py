@@ -4,7 +4,6 @@ import numpy as np
 import scipy.odr as odr
 import string
 from dataUncert.variable import variable
-from dataUncert.unit import unit
 
 
 class _fit():
@@ -88,7 +87,7 @@ class _fit():
         # scatter
         if showUncert:
             logger.info(f'Scattering the data on the axis {ax} with uncetanties. The label is "{label}"')
-            ax.errorbar(self.xVal, self.yVal, xerr=self.xUncert, yerr=self.yUncert, label=label, **kwargs)
+            ax.errorbar(self.xVal, self.yVal, xerr=self.xUncert, yerr=self.yUncert, linestyle='', label=label, **kwargs)
         else:
             logger.info(f'Scattering the data on the axis {ax} without uncetanties. The label is "{label}"')
             ax.scatter(self.xVal, self.yVal, label=label, **kwargs)

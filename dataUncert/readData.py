@@ -10,7 +10,7 @@ from dataUncert.variable import variable
 
 
 def readData(xlFile, dataRange, uncertRange=None):
-    logging.info(f'Creating a data object from the file {xlFile} with the dataRange {dataRange} and the uncertRange {uncertRange}')
+    logger.info(f'Creating a data object from the file {xlFile} with the dataRange {dataRange} and the uncertRange {uncertRange}')
     dat = _readData(xlFile, dataRange, uncertRange)
     return dat.dat
 
