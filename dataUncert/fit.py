@@ -16,8 +16,8 @@ class _fit():
 
         self.xVal = x.value
         self.yVal = y.value
-        self.xUnit = x.unit
-        self.yUnit = y.unit
+        self.xUnit = x._unitObject
+        self.yUnit = y._unitObject
         self.xUncert = x.uncert
         self.yUncert = y.uncert
 

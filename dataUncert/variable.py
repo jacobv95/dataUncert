@@ -10,9 +10,9 @@ class variable():
         logger.info(f'Creating variable with a value of {value}, a unit of "{unitStr}" and an uncertanty of {uncert}')
 
         if isinstance(unitStr, unit):
-            self.unit = unitStr
+            self._unitObject = unitStr
         else:
-            self.unit = unit(unitStr)
+            self._unitObject = unit(unitStr)
 
         self.nDigits = nDigits
 
@@ -54,15 +54,19 @@ class variable():
         self.dependsOn = {}
         self.covariance = {}
 
+    @property
+    def unit(self):
+        return str(self._unitObject)
+
     def convert(self, newUnit):
-        oldUnit = self.unit
+        oldUnit = self._unitObject
         oldValue = self.value
         oldUncert = self.uncert
 
-        converter = self.unit.getConverter(newUnit)
-        self.value = converter.convert(self.value, useOffset=not self.unit.isCombinationUnit())
+        converter = self._unitObject.getConverter(newUnit)
+        self.value = converter.convert(self.value, useOffset=not self._unitObject.isCombinationUnit())
         self.uncert = converter.convert(self.uncert, useOffset=False)
-        self.unit = unit(newUnit)
+        self._unitObject = unit(newUnit)
 
         logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self.value} +/- {self.uncert} [{self.unit}]')
 
@@ -113,7 +117,7 @@ class variable():
 
         # standard values
         uncert = None
-        unitStr = self.unit.__str__(pretty=pretty)
+        unitStr = self._unitObject.__str__(pretty=pretty)
 
         if pretty:
             pm = r'\pm'
@@ -239,7 +243,7 @@ class variable():
         logger.debug(f'Begin adding {self} and {other}')
         if isinstance(other, variable):
             try:
-                outputUnit = self.unit + other.unit
+                outputUnit = self._unitObject + other._unitObject
             except ValueError:
                 logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
                 raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
@@ -267,7 +271,7 @@ class variable():
         logger.debug(f'Begin subtracting {other} from {self}')
         if isinstance(other, variable):
             try:
-                outputUnit = self.unit - other.unit
+                outputUnit = self._unitObject - other._unitObject
             except ValueError:
                 logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
                 raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
@@ -294,7 +298,7 @@ class variable():
         logger.info(f'Multiplying {self} and {other}')
         logger.debug(f'Begining to multiply {self} and {other}')
         if isinstance(other, variable):
-            outputUnit = self.unit * other.unit
+            outputUnit = self._unitObject * other._unitObject
 
             val = self.value * other.value
             grad = [other.value, self.value]
@@ -326,7 +330,7 @@ class variable():
                 raise ValueError('The exponent can not have a unit')
 
             val = self.value ** other.value
-            outputUnit = self.unit ** other.value
+            outputUnit = self._unitObject ** other.value
 
             def gradSelf(valSelf, valOther, uncertSelf):
                 if uncertSelf != 0:
@@ -368,7 +372,7 @@ class variable():
         if isinstance(other, variable):
 
             val = self.value / other.value
-            outputUnit = self.unit / other.unit
+            outputUnit = self._unitObject / other._unitObject
             grad = [1 / other.value, self.value / (other.value**2)]
             vars = [self, other]
 
@@ -389,7 +393,7 @@ class variable():
         if isinstance(other, variable):
 
             val = other.value / self.value
-            outputUnit = other.unit / self.unit
+            outputUnit = other._unitObject / self._unitObject
             grad = [other.value / (self.value**2), 1 / (self.value)]
             vars = [self, other]
 
@@ -411,7 +415,7 @@ class variable():
     def log(self):
         logger.info(f'Taking the natural log of {self}')
         logger.debug(f'Beginning to take the natural log of {self}')
-        if self.unit.unitStr != '1':
+        if self.unit != '1':
             logger.error('You can only take the natural log of a variable if it has no unit')
             raise ValueError('You can only take the natural log of a variable if it has no unit')
         val = np.log(self.value)
@@ -429,7 +433,7 @@ class variable():
     def log10(self):
         logger.info(f'Taking the base 10 log of {self}')
         logger.debug(f'Beginning to take the base 10 log of {self}')
-        if self.unit.unitStr != '1':
+        if self.unit != '1':
             logger.error('You can only take the base 10 log of a variable if it has no unit')
             raise ValueError('You can only take the base 10 log of a variable if it has no unit')
         val = np.log10(self.value)

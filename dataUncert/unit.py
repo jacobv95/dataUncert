@@ -146,8 +146,6 @@ for key, d in knownUnitsDict.items():
         else:
             raise Warning(f'The unit {item} known in more than one unit system')
 
-# TODO logging
-
 
 class unit():
     def __init__(self, unitStr) -> None:
