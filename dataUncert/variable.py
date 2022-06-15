@@ -4,6 +4,9 @@ import numpy as np
 from dataUncert.unit import unit
 
 
+HANDLED_FUNCTIONS = {}
+
+
 class variable():
     def __init__(self, value, unitStr, uncert=None, nDigits=3) -> None:
 
@@ -72,6 +75,8 @@ class variable():
 
     def __getitem__(self, items):
         if isinstance(self.value, np.ndarray):
+            if isinstance(items, int):
+                items = [items]
             vals = [self.value[i] for i in items]
             uncert = [self.uncert[i]for i in items]
             return variable(vals, self.unit, uncert)
@@ -453,3 +458,80 @@ class variable():
 
     def sqrt(self):
         return self**(1 / 2)
+
+    def __array_function__(self, func, types, args, kwargs):
+        if func not in HANDLED_FUNCTIONS:
+            return NotImplemented
+        # Note: this allows subclasses that don't override
+        # __array_function__ to handle Physical objects
+        if not all(issubclass(t, variable) for t in types):
+            return NotImplemented
+        return HANDLED_FUNCTIONS[func](*args, **kwargs)
+
+
+def implements(numpy_function):
+    """Register an __array_function__ implementation for Physical objects."""
+    def decorator(func):
+        HANDLED_FUNCTIONS[numpy_function] = func
+        return func
+    return decorator
+
+
+@implements(np.max)
+def np_max_for_variable(x, *args, **kwargs):
+    if isinstance(x.value, np.ndarray):
+        index = np.argmax(x.value)
+        val = x.value[index]
+        if not x.uncert is None:
+            unc = x.uncert[index]
+        else:
+            unc = None
+    else:
+        val = x.value
+        if not x.uncert is None:
+            unc = x.uncert
+        else:
+            unc = None
+    return variable(val, x.unit, unc)
+
+
+@implements(np.min)
+def np_max_for_variable(x, *args, **kwargs):
+    if isinstance(x.value, np.ndarray):
+        index = np.argmin(x.value)
+        val = x.value[index]
+        if not x.uncert is None:
+            unc = x.uncert[index]
+        else:
+            unc = None
+    else:
+        val = x.value
+        if not x.uncert is None:
+            unc = x.uncert
+        else:
+            unc = None
+    return variable(val, x.unit, unc)
+
+
+@implements(np.mean)
+def np_mean_for_variable(x, *args, **kwargs):
+    if isinstance(x.value, np.ndarray):
+        val = np.mean(x.value)
+        if not x.uncert is None:
+            n = len(x.uncert)
+            unc = np.sqrt(sum([(1 / n * elem)**2 for elem in x.uncert]))
+        else:
+            unc = None
+    else:
+        val = x.value
+        if not x.uncert is None:
+            unc = x.uncert
+        else:
+            unc = None
+    return variable(val, x.unit, unc)
+
+
+if __name__ == '__main__':
+    a = variable([10, 11], 'm', uncert=None)
+    a = np.mean(a)
+    print(a)

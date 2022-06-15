@@ -906,6 +906,104 @@ class test(unittest.TestCase):
         self.assertEqual(c.__str__(pretty=True), '[12.3, 56.2]\\ \\left [m\\right ]')
         self.assertEqual(d.__str__(pretty=True), '[12, 56] \pm [2, 7]\\ \\left [m\\right ]')
 
+    def testMax(self):
+
+        A = variable(10, 'm', 2.3)
+        A = np.max(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 2.3)
+
+        A = variable(10, 'm')
+        A = np.max(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+        A = variable([10, 15.7], 'm', [2.3, 5.6])
+        A = np.max(A)
+        self.assertEqual(A.value, 15.7)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 5.6)
+
+        A = variable([10, 15.7], 'm')
+        A = np.max(A)
+        self.assertEqual(A.value, 15.7)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+        A = variable([10, 15.7], 'm')
+        B = variable(8, 'L', 2.3)
+        with self.assertRaises(Exception) as context:
+            max([A, B])
+        self.assertTrue("'>' not supported between instances of 'variable' and 'variable'" in str(context.exception))
+
+    def testMin(self):
+
+        A = variable(10, 'm', 2.3)
+        A = np.min(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 2.3)
+
+        A = variable(10, 'm')
+        A = np.min(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+        A = variable([10, 15.7], 'm', [2.3, 5.6])
+        A = np.min(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 2.3)
+
+        A = variable([10, 15.7], 'm')
+        A = np.min(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+        A = variable([10, 15.7], 'm')
+        B = variable(8, 'L', 2.3)
+        with self.assertRaises(Exception) as context:
+            min([A, B])
+        self.assertTrue("'<' not supported between instances of 'variable' and 'variable'" in str(context.exception))
+
+    def testMean(self):
+
+        A = variable(10, 'm', 2.3)
+        A = np.mean(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 2.3)
+
+        A = variable(10, 'm')
+        A = np.mean(A)
+        self.assertEqual(A.value, 10)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+        A = variable([10, 15.7], 'm', [2.3, 5.6])
+        A = np.mean(A)
+        self.assertEqual(A.value, (10 + 15.7) / 2)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, np.sqrt((1 / 2 * 2.3) ** 2 + (1 / 2 * 5.6) ** 2))
+
+        A = variable([10, 15.7], 'm')
+        A = np.mean(A)
+        self.assertEqual(A.value, (10 + 15.7) / 2)
+        self.assertEqual(A.unit, 'm')
+        self.assertEqual(A.uncert, 0)
+
+    def testSum(self):
+        A = variable(10, 'm', 2.3)
+        B = variable(8, 'm', 1.7)
+        C = sum([A, B])
+        self.assertEqual(C.value, 10 + 8)
+        self.assertEqual(C.unit, 'm')
+        self.assertEqual(C.uncert, np.sqrt(2.3**2 + 1.7**2))
+
 
 if __name__ == '__main__':
     unittest.main()
