@@ -314,89 +314,106 @@ def lin_fit(x, y, p0=None):
 
 
 class pol_fit(_fit):
-    def __init__(self, x, y, deg=2, p0=None):
-        logger.info(f'Creating a polynomial fitting object with the data {x} and {y} and the initial guess of {p0}')
+    def __init__(self, x, y, deg=2, terms=None, p0=None):
+        if terms is None:
+            terms = [True] * (deg + 1)
+        else:
+            for term in terms:
+                if not str(type(term)) == "<class 'bool'>":
+                    logger.error('All elements in "terms" has to be booleans')
+                    raise ValueError('All elements in "terms" has to be booleans')
+            if len(terms) > deg + 1:
+                logger.error(f'You have specified to use {len(terms)} terms, but you can only use {deg+1} using a polynomial of degree {deg}')
+                raise ValueError(f'You have specified to use {len(terms)} terms, but you can only use {deg+1} using a polynomial of degree {deg}')
+        self.terms = terms
+
         if p0 is None:
-            p0 = [1] * (deg + 1)
-        if len(p0) != (deg + 1):
-            logger.error(f'You have to provide initial guesses for {deg + 1} parameters')
-            raise ValueError(f'You have to provide initial guesses for {deg + 1} parameters')
-        if deg + 1 != len(p0):
-            logger.error('The length of the initial guess has to have one more element than the polynomial degree')
-            raise ValueError('The length of the initial guess has to have one more element than the polynomial degree')
+            p0 = [1] * sum(1 for elem in self.terms if elem)
 
         self.deg = deg
+
+        logger.info(f'Creating a polynomial fitting object with the data {x} and {y} and the initial guess of {p0}')
         _fit.__init__(self, self.func, x, y, p0=p0)
 
     def getPoptVariables(self):
         logger.info('Converting the regression coefficients to variables')
         popt = []
         n = self.deg
+        index = 0
         for i in range(n + 1):
-            value = self.popt[i]
-            uncert = self.uPopt[i]
-            u = self.yUnit / (self.xUnit ** (n - i))
-            var = variable(value, u, uncert)
-            popt.append(var)
+            if self.terms[i]:
+                value = self.popt[index]
+                uncert = self.uPopt[index]
+                u = self.yUnit / (self.xUnit ** (n - i))
+                var = variable(value, u, uncert)
+                popt.append(var)
+                index += 1
         self.popt = popt
 
     def func(self, B, x):
         out = 0
         n = self.deg
+        index = 0
         for i in range(n + 1):
-            # if isinstance(x, variable):
-            #     print(f'B{i}: {B[i]}')
-            #     print(f'x**({n-i}): {(x**(n-i)).uncert}')
-            #     val = B[i] * x**(n - i)
-            #     print(f'B{i}*x**({n-i}): {val.uncert}')
-            out += B[i] * x**(n - i)
+            if self.terms[i]:
+                out += B[index] * x**(n - i)
+                index += 1
         return out
 
     def d_func(self, B, x):
         out = 0
         n = self.deg
+        index = 0
         for i in range(n):
-            out += (n - i) * B[i] * x**(n - i - 1)
+            if self.terms[i]:
+                out += (n - i) * B[index] * x**(n - i - 1)
         return out
 
     def d_func_name(self):
         out = ''
         n = self.deg
         for i in range(n):
-            exponent = n - i - 1
-            coefficient = n - i
-            if out:
-                out += '+'
-            if coefficient != 1:
-                out += f'{coefficient}'
+            if self.terms[i]:
+                exponent = n - i - 1
+                coefficient = n - i
+                if out:
+                    out += '+'
+                if coefficient != 1:
+                    out += f'{coefficient}'
 
-            out += f'{string.ascii_lowercase[i]}'
+                out += f'{string.ascii_lowercase[i]}'
 
-            if exponent != 0:
-                out += f'$x$'
-            if exponent > 1:
-                out += f'$^{exponent}$'
+                if exponent != 0:
+                    out += f'$x$'
+                if exponent > 1:
+                    out += f'$^{exponent}$'
 
+        index = 0
         for i in range(n):
-            out += f', {string.ascii_lowercase[i]}={self.popt[i]}'
+            if self.terms[i]:
+                out += f', {string.ascii_lowercase[i]}={self.popt[index].__str__(pretty = True)}'
+                index += 1
         return out
 
     def func_name(self):
         out = '$'
         n = self.deg
         for i in range(n + 1):
-            exponent = n - i
-            if i == 0:
-                out += f'{string.ascii_lowercase[i]}'
-            else:
-                out += f'+{string.ascii_lowercase[i]}'
-            if exponent != 0:
-                out += f'x'
-            if exponent > 1:
-                out += f'^{exponent}'
-
+            if self.terms[i]:
+                exponent = n - i
+                if i == 0:
+                    out += f'{string.ascii_lowercase[i]}'
+                else:
+                    out += f'+{string.ascii_lowercase[i]}'
+                if exponent != 0:
+                    out += f'x'
+                if exponent > 1:
+                    out += f'^{exponent}'
+        index = 0
         for i in range(n + 1):
-            out += f', {string.ascii_lowercase[i]}={self.popt[i].__str__(pretty = True)}'
+            if self.terms[i]:
+                out += f', {string.ascii_lowercase[i]}={self.popt[index].__str__(pretty = True)}'
+                index += 1
         out += '$'
         return out
 

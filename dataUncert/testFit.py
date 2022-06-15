@@ -1,4 +1,6 @@
 import logging
+
+from fit import pol_fit
 logging.disable(logging.ERROR)
 import unittest
 import numpy as np
@@ -114,6 +116,20 @@ class test(unittest.TestCase):
         self.assertAlmostEqual(Fd.uncert, 0)
 
         self.assertAlmostEqual(F.r_squared, 1)
+
+    def testPolFit4(self):
+        a = 0.1
+        b = 100
+        n = 100
+        x = np.linspace(0, 100, n)
+        y = a * x + b
+
+        x = variable(x, 'm')
+        y = variable(y, 'C')
+
+        F = pol_fit(x, y, deg=1, terms=[True, False])
+        for elem in F.popt:
+            print(elem)
 
 
 if __name__ == '__main__':
