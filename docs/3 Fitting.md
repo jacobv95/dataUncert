@@ -14,7 +14,7 @@ The dummy fit will always return a constant function with a value of 1. This fit
 ```
 F_dummy = dummy_fit(x: variable, y: variable)
 F_lin = lin_fit(x: variable, y: variable, p0 = None: list | None)
-F_pol = pol_fit(x: variable, y: variable, deg: int = 2, p0 = None: list | None)
+F_pol = pol_fit(x: variable, y: variable, deg: int = 2, terms = None: list | Nonep0 = None: list | None)
 F_pow = pow_fit(x: variable, y: variable, p0 = None: list | None)
 F_exp = exp_fit(x: variable, y: variable, p0 = None: list | None)
 F_logistic = logistic_fit(x: variable, y: variable, p0 = None: list | None)
@@ -25,6 +25,7 @@ F_logistic_100 = logistic_100_fit(x: variable, y: variable, p0 = None: list | No
  - y is the y data used to generate the regression
  - p0 is the initial guess of the regression coefficients. The coefficients will be initialized to 1 if p0 is set to None
  - deg is the degree of the polynomial
+ - terms defined the terms of the polynomial to use. if terms is None, then all terms are used. Each element in the list has to be a boolean. The terms are ordered from highest to lowest polynomial degree
 
 ## Priting
 The fit can be printed. This is done in latex format. First the model is printed, and then the coefficients are printed.
