@@ -215,6 +215,12 @@ class unit():
             lowerPrefix = [elem for i, elem in enumerate(lowerPrefix) if i not in indexesToRemove]
             lowerExp = [elem for i, elem in enumerate(lowerExp) if i not in indexesToRemove]
 
+        # remove any units of '1'. These occur if two units cancle each other
+        if len(upper) > 1:
+            upper = [elem for elem in upper if elem != '1']
+        if len(lower) > 1:
+            lower = [elem for elem in lower if elem != '1']
+
         # return the list ['1'] if there are no more units
         if not upper:
             upper = ['1']
