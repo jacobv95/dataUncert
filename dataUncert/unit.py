@@ -124,7 +124,7 @@ knownUnitsDict = {
     'kg-m2/s3': power,
     'kg': mass,
     'A': current,
-    'V': voltage,
+    'kg-m2/s3-A': voltage,
     '1': baseUnit,
     'Hz': frequency
 }
@@ -672,22 +672,28 @@ class unit():
 
     def getConverter(self, newUnit):
 
+        # determine the SI base of the old unit
+        upper = [unit(knownUnits[elem][0]) for elem in self.upper]
+        lower = [unit(knownUnits[elem][0]) for elem in self.lower]
+        oldSIBase = unit('')
+        for up, upExp in zip(upper, self.upperExp):
+            oldSIBase *= up ** upExp
+        for lower, lowExp in zip(lower, self.lowerExp):
+            oldSIBase /= lower ** lowExp
+
+        # determine the SI base of the new unit
         newUnit = unit(newUnit)
+        upper = [unit(knownUnits[elem][0]) for elem in newUnit.upper]
+        lower = [unit(knownUnits[elem][0]) for elem in newUnit.lower]
+        newSIBase = unit('')
+        for up, upExp in zip(upper, newUnit.upperExp):
+            newSIBase *= up ** upExp
+        for lower, lowExp in zip(lower, newUnit.lowerExp):
+            newSIBase /= lower ** lowExp
 
-        selfUpperSIBase = [knownUnits[elem][0] for elem in self.upper]
-        selfLowerSIBase = [knownUnits[elem][0] for elem in self.lower]
-        newUnitUpperSIBase = [knownUnits[elem][0] for elem in newUnit.upper]
-        newUnitLowerSIBase = [knownUnits[elem][0] for elem in newUnit.lower]
-
-        newUnitUpperPrefix = [None] * len(newUnitUpperSIBase)
-        newUnitLowerPrefix = [None] * len(newUnitLowerSIBase)
-        selfUpperPrefix = [None] * len(self.upper)
-        selfLowerPrefix = [None] * len(self.lower)
-        newUnitSIBase = self._combineUpperAndLower(newUnitUpperSIBase, newUnitUpperPrefix, newUnit.upperExp, newUnitLowerSIBase, newUnitLowerPrefix, newUnit.lowerExp)
-        selfSIBase = self._combineUpperAndLower(selfUpperSIBase, selfUpperPrefix, self.upperExp, selfLowerSIBase, selfLowerPrefix, self.lowerExp)
-
+        # determine if the SI base of the old and the new unit are identical
         try:
-            selfSIBase._assertEqual(newUnitSIBase)
+            oldSIBase._assertEqual(newSIBase)
         except ValueError:
             raise ValueError(f'You tried to convert from {self} to {newUnit}. But these do not have the same base units')
 

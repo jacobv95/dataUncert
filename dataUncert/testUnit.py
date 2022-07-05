@@ -108,6 +108,12 @@ class test(unittest.TestCase):
         converter = a.getConverter('F')
         self.assertAlmostEqual(converter.convert(300, useOffset=True), 80.33)
 
+        a = unit('A')
+        b = unit('V')
+        c = a * b
+        converter = c.getConverter('W')
+        self.assertAlmostEqual(converter.convert(1, useOffset=True), 1)
+
         with self.assertRaises(Exception) as context:
             a = unit('µ')
         self.assertEqual('The unit (µ) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix', str(context.exception))
