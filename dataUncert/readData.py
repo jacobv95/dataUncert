@@ -164,7 +164,9 @@ class _readData():
     def formatUnits(self, units):
         out = []
         for unit in units:
-            if not unit is None and len(unit) > 0:
+            if unit is None:
+                unit = ''
+            if len(unit) > 0:
                 # remove symbols and replace with _
                 allowedCharacters = []
                 allowedCharacters += list(string.ascii_letters)
