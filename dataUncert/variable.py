@@ -8,7 +8,7 @@ HANDLED_FUNCTIONS = {}
 
 
 class variable():
-    def __init__(self, value, unitStr, uncert=None, nDigits=3) -> None:
+    def __init__(self, value, unitStr='', uncert=None, nDigits=3) -> None:
 
         logger.info(f'Creating variable with a value of {value}, a unit of "{unitStr}" and an uncertanty of {uncert}')
 
@@ -136,6 +136,11 @@ class variable():
             squareBracketRight = ']'
             space = ' '
 
+        if unitStr == '1':
+            unitStr = ''
+        else:
+            unitStr = rf'{squareBracketLeft}{unitStr}{squareBracketRight}'
+
         if isinstance(self.value, float) or isinstance(self.value, int):
             # print a single value
             value = self.value
@@ -144,9 +149,9 @@ class variable():
 
             value, uncert = self.printUncertanty(value, uncert)
             if uncert is None:
-                return rf'{value}{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
+                return rf'{value}{space}{unitStr}'
             else:
-                return rf'{value} {pm} {uncert}{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
+                return rf'{value} {pm} {uncert}{space}{unitStr}'
 
         else:
             # print array of values
@@ -165,7 +170,7 @@ class variable():
                     if i != len(valStr) - 1:
                         out += rf', '
                 out += rf']'
-                out += rf'{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
+                out += rf'{space}{unitStr}'
                 return out
             else:
                 # find number of significant digits in uncertanty
@@ -183,7 +188,7 @@ class variable():
                     if i != len(uncStr) - 1:
                         out += r', '
                 out += rf']'
-                out += rf'{space}{squareBracketLeft}{unitStr}{squareBracketRight}'
+                out += rf'{space}{unitStr}'
                 return out
 
     def _addDependents(self, L, grad):
@@ -529,9 +534,3 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
-
-
-if __name__ == '__main__':
-    a = variable([10, 11], 'm', uncert=None)
-    a = np.mean(a)
-    print(a)
