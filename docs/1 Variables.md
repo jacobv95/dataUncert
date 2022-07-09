@@ -37,6 +37,7 @@ The following units are known:
  - length: m
  - current: A
  - Voltage: V
+ - Angles: rad, °
 
 
 The following prefixes are known:
@@ -78,4 +79,24 @@ A variable can be converted to another unit using the convert method.
 ```
 variable.convert(unit: str)
 ```
+
+
+
+## operators
+ - add
+ - subtract
+ - multiply
+ - divide
+ - power
+ - np.sqrt
+ - np.exp
+ - np.sin
+ - np.cos
+ - np.tan
+ - np.mean
+ - np.min
+ - np.max
+ - np.log
+ - np.log10
+ - np.sqrt
 
