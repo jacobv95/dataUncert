@@ -1004,6 +1004,44 @@ class test(unittest.TestCase):
         self.assertEqual(C.unit, 'm')
         self.assertEqual(C.uncert, np.sqrt(2.3**2 + 1.7**2))
 
+    def testTrig(self):
+        a = variable(75, '°', 1)
+        b = np.sin(a)
+        self.assertAlmostEqual(b.value, 0.96592582628)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((1 * np.pi / 180) * (np.cos(75 * np.pi / 180)))**2))
+
+        a = variable(75, '°', 1)
+        b = np.cos(a)
+        self.assertAlmostEqual(b.value, 0.2588190451)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((1 * np.pi / 180) * (-np.sin(75 * np.pi / 180)))**2))
+
+        a = variable(75, '°', 1)
+        b = np.tan(a)
+        self.assertAlmostEqual(b.value, 3.73205080757)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((1 * np.pi / 180) * (2 / (np.cos(2 * 75 * np.pi / 180) + 1)))**2))
+
+
+        a = variable(0.367, 'rad', 0.0796)
+        b = np.sin(a)
+        self.assertAlmostEqual(b.value, 0.35881682685)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((0.0796) * (np.cos(0.367)))**2))
+
+        a = variable(0.367, 'rad', 0.0796)
+        b = np.cos(a)
+        self.assertAlmostEqual(b.value, 0.9334079948)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((0.0796) * (-np.sin(0.367)))**2))
+
+        a = variable(0.367, 'rad', 0.0796)
+        b = np.tan(a)
+        self.assertAlmostEqual(b.value, 0.38441584907)
+        self.assertEqual(b.unit, '1')
+        self.assertAlmostEqual(b.uncert, np.sqrt(((0.0796) * (2 / (np.cos(2 *0.367) + 1)))**2))
+
 
 if __name__ == '__main__':
     unittest.main()

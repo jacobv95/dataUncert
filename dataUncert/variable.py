@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 import numpy as np
 from dataUncert.unit import unit
+from copy import deepcopy
 
 
 HANDLED_FUNCTIONS = {}
@@ -463,6 +464,66 @@ class variable():
 
     def sqrt(self):
         return self**(1 / 2)
+
+    def sin(self):
+        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+            logger.error('You can only take sin of an angle')
+            raise ValueError('You can only take sin of an angle')
+
+        a = deepcopy(self)
+        a.convert('rad')
+
+        val = np.sin(a.value)
+        outputUnit = '1'
+
+        grad = [np.cos(a.value)]
+        vars = [a]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
+
+    def cos(self):
+        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+            logger.error('You can only take cos of an angle')
+            raise ValueError('You can only take cos of an angle')
+
+        a = deepcopy(self)
+        a.convert('rad')
+
+        val = np.cos(a.value)
+        outputUnit = '1'
+
+        grad = [-np.sin(a.value)]
+        vars = [a]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
+
+    def tan(self):
+        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+            logger.error('You can only take tan of an angle')
+            raise ValueError('You can only take tan of an angle')
+
+        a = deepcopy(self)
+        a.convert('rad')
+
+        val = np.tan(a.value)
+        outputUnit = '1'
+
+        grad = [2 / (np.cos(2 * a.value) + 1)]
+        vars = [a]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
 
     def __array_function__(self, func, types, args, kwargs):
         if func not in HANDLED_FUNCTIONS:

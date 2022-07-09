@@ -101,6 +101,11 @@ length = {
     'm': _unitConversion(1, 0)
 }
 
+angle = {
+    'rad': _unitConversion(1, 0),
+    '°': _unitConversion(np.pi / 180, 0)
+}
+
 current = {
     'A': _unitConversion(1, 0)
 }
@@ -126,7 +131,8 @@ knownUnitsDict = {
     'A': current,
     'kg-m2/s3-A': voltage,
     '1': baseUnit,
-    'Hz': frequency
+    'Hz': frequency,
+    'rad': angle
 }
 
 knownPrefixes = {
@@ -670,30 +676,22 @@ class unit():
 
                 return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
 
-    def getConverter(self, newUnit):
-
-        # determine the SI base of the old unit
+    def getSIBaseUnit(self):
         upper = [unit(knownUnits[elem][0]) for elem in self.upper]
         lower = [unit(knownUnits[elem][0]) for elem in self.lower]
-        oldSIBase = unit('')
+        SIBase = unit('')
         for up, upExp in zip(upper, self.upperExp):
-            oldSIBase *= up ** upExp
+            SIBase *= up ** upExp
         for lower, lowExp in zip(lower, self.lowerExp):
-            oldSIBase /= lower ** lowExp
+            SIBase /= lower ** lowExp
+        return SIBase
 
-        # determine the SI base of the new unit
+    def getConverter(self, newUnit):
+
         newUnit = unit(newUnit)
-        upper = [unit(knownUnits[elem][0]) for elem in newUnit.upper]
-        lower = [unit(knownUnits[elem][0]) for elem in newUnit.lower]
-        newSIBase = unit('')
-        for up, upExp in zip(upper, newUnit.upperExp):
-            newSIBase *= up ** upExp
-        for lower, lowExp in zip(lower, newUnit.lowerExp):
-            newSIBase /= lower ** lowExp
 
-        # determine if the SI base of the old and the new unit are identical
         try:
-            oldSIBase._assertEqual(newSIBase)
+            self.getSIBaseUnit()._assertEqual(newUnit.getSIBaseUnit())
         except ValueError:
             raise ValueError(f'You tried to convert from {self} to {newUnit}. But these do not have the same base units')
 
