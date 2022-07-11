@@ -1023,7 +1023,6 @@ class test(unittest.TestCase):
         self.assertEqual(b.unit, '1')
         self.assertAlmostEqual(b.uncert, np.sqrt(((1 * np.pi / 180) * (2 / (np.cos(2 * 75 * np.pi / 180) + 1)))**2))
 
-
         a = variable(0.367, 'rad', 0.0796)
         b = np.sin(a)
         self.assertAlmostEqual(b.value, 0.35881682685)
@@ -1040,7 +1039,7 @@ class test(unittest.TestCase):
         b = np.tan(a)
         self.assertAlmostEqual(b.value, 0.38441584907)
         self.assertEqual(b.unit, '1')
-        self.assertAlmostEqual(b.uncert, np.sqrt(((0.0796) * (2 / (np.cos(2 *0.367) + 1)))**2))
+        self.assertAlmostEqual(b.uncert, np.sqrt(((0.0796) * (2 / (np.cos(2 * 0.367) + 1)))**2))
 
 
 if __name__ == '__main__':

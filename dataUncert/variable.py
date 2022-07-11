@@ -470,14 +470,15 @@ class variable():
             logger.error('You can only take sin of an angle')
             raise ValueError('You can only take sin of an angle')
 
-        a = deepcopy(self)
-        a.convert('rad')
-
-        val = np.sin(a.value)
         outputUnit = '1'
+        if self.unit == 'rad':
+            val = np.sin(self.value)
+            grad = [np.cos(self.value)]
+        else:
+            val = np.sin(np.deg2rad(self.value))
+            grad = [np.pi / 180 * np.cos(np.deg2rad(self.value))]
 
-        grad = [np.cos(a.value)]
-        vars = [a]
+        vars = [self]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
@@ -490,14 +491,15 @@ class variable():
             logger.error('You can only take cos of an angle')
             raise ValueError('You can only take cos of an angle')
 
-        a = deepcopy(self)
-        a.convert('rad')
-
-        val = np.cos(a.value)
         outputUnit = '1'
+        if self.unit == 'rad':
+            val = np.cos(self.value)
+            grad = [-np.sin(self.value)]
+        else:
+            val = np.cos(np.deg2rad(self.value))
+            grad = [-np.pi / 180 * np.sin(np.deg2rad(self.value))]
 
-        grad = [-np.sin(a.value)]
-        vars = [a]
+        vars = [self]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
@@ -510,14 +512,15 @@ class variable():
             logger.error('You can only take tan of an angle')
             raise ValueError('You can only take tan of an angle')
 
-        a = deepcopy(self)
-        a.convert('rad')
-
-        val = np.tan(a.value)
         outputUnit = '1'
+        if self.unit == 'rad':
+            val = np.tan(self.value)
+            grad = [2 / (np.cos(2 * self.value) + 1)]
+        else:
+            val = np.tan(np.deg2rad(self.value))
+            grad = [np.pi / 180 * 2 / (np.cos(2 * np.deg2rad(self.value)) + 1)]
 
-        grad = [2 / (np.cos(2 * a.value) + 1)]
-        vars = [a]
+        vars = [self]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
