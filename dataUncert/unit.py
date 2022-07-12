@@ -211,21 +211,15 @@ class unit():
 
         # remove '1' if the upper or lower is longer than 1
         if len(upper) > 1:
-            indexesToRemove = [i for i, (elem, prefix) in enumerate(zip(upper, upperPrefix)) if elem == '1' and prefix is None]
+            indexesToRemove = [i for i, elem in enumerate(upper) if elem == '1']
             upper = [elem for i, elem in enumerate(upper) if i not in indexesToRemove]
             upperPrefix = [elem for i, elem in enumerate(upperPrefix) if i not in indexesToRemove]
             upperExp = [elem for i, elem in enumerate(upperExp) if i not in indexesToRemove]
         if len(lower) > 1:
-            indexesToRemove = [i for i, (elem, prefix) in enumerate(zip(lower, lowerPrefix)) if elem == '1' and prefix is None]
+            indexesToRemove = [i for i, elem in enumerate(lower) if elem == '1']
             lower = [elem for i, elem in enumerate(lower) if i not in indexesToRemove]
             lowerPrefix = [elem for i, elem in enumerate(lowerPrefix) if i not in indexesToRemove]
             lowerExp = [elem for i, elem in enumerate(lowerExp) if i not in indexesToRemove]
-
-        # remove any units of '1'. These occur if two units cancle each other
-        if len(upper) > 1:
-            upper = [elem for elem in upper if elem != '1']
-        if len(lower) > 1:
-            lower = [elem for elem in lower if elem != '1']
 
         # return the list ['1'] if there are no more units
         if not upper:
@@ -610,6 +604,7 @@ class unit():
             out.lowerPrefix,
             out.lowerExp
         )
+
         out = self._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
 
         return out
@@ -679,6 +674,7 @@ class unit():
     def getSIBaseUnit(self):
         upper = [unit(knownUnits[elem][0]) for elem in self.upper]
         lower = [unit(knownUnits[elem][0]) for elem in self.lower]
+
         SIBase = unit('')
         for up, upExp in zip(upper, self.upperExp):
             SIBase *= up ** upExp
@@ -737,3 +733,4 @@ class unit():
                     out *= conv
 
         return out
+

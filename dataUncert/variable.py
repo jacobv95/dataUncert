@@ -2,7 +2,6 @@ import logging
 logger = logging.getLogger(__name__)
 import numpy as np
 from dataUncert.unit import unit
-from copy import deepcopy
 
 
 HANDLED_FUNCTIONS = {}
@@ -13,17 +12,13 @@ class variable():
 
         logger.info(f'Creating variable with a value of {value}, a unit of "{unitStr}" and an uncertanty of {uncert}')
 
-        if isinstance(unitStr, unit):
-            self._unitObject = unitStr
-        else:
-            self._unitObject = unit(unitStr)
+        # create a unit object
+        self._unitObject = unitStr if isinstance(unitStr, unit) else unit(unitStr)
 
+        # number of digits to show
         self.nDigits = nDigits
 
-        # uncertanty
-        self.dependsOn = {}
-        self.covariance = {}
-
+        # parse the value and the uncertaty
         try:
             # the value is a single number
             self.value = float(value)
@@ -54,9 +49,15 @@ class variable():
                     self.value = np.array(value, dtype=float)
                     self.uncert = np.array(uncert, dtype=float)
 
+        # value and unit in SI. This is used when determining the gradient in the uncertanty expression
+        self._getConverterToSI()
+
         # uncertanty
         self.dependsOn = {}
         self.covariance = {}
+
+    def _getConverterToSI(self):
+        self._converterToSI = self._unitObject.getConverter(str(self._unitObject.getSIBaseUnit()))
 
     @property
     def unit(self):
@@ -71,6 +72,9 @@ class variable():
         self.value = converter.convert(self.value, useOffset=not self._unitObject.isCombinationUnit())
         self.uncert = converter.convert(self.uncert, useOffset=False)
         self._unitObject = unit(newUnit)
+
+        # update the converter to SI
+        self._getConverterToSI()
 
         logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self.value} +/- {self.uncert} [{self.unit}]')
 
@@ -192,27 +196,32 @@ class variable():
                 out += rf'{space}{unitStr}'
                 return out
 
-    def _addDependents(self, L, grad):
-        for i, elem in enumerate(L):
-            logger.debug(f'Adding dependency of {elem} with a gradient of {grad[i]} to {self}')
-            if elem.dependsOn:
-                logger.debug(f'The variable {elem} has dependencies. These are iterated over and added to {self}')
-                for key, item in elem.dependsOn.items():
+    def _addDependents(self, vars, grads):
+        for var, grad in zip(vars, grads):
+
+            # scale the gradient to SI units. This is necessary if one of the variables are converted after the dependency has been noted
+            scale = self._converterToSI.convert(1, useOffset=False) / var._converterToSI.convert(1, useOffset=False)
+            grad *= scale
+
+            logger.debug(f'Adding dependency of {var} with a gradient of {grad} to {self}')
+            if var.dependsOn:
+                logger.debug(f'The variable {var} has dependencies. These are iterated over and added to {self}')
+                for key, item in var.dependsOn.items():
                     if key in self.dependsOn:
                         logger.debug(
-                            f'The variable {elem} depends on {key}, which {self} also depends on. The dependency of {self} on {elem} is increased with the new gradient in order to follow the chain rule')
-                        self.dependsOn[key] += item * grad[i]
+                            f'The variable {var} depends on {key} with a gradient of {item}. The variable {self} also depends on {key} with a gradient of {self.dependsOn[key]}. The dependency of {self} on {key} is increased with {item} multiplied with {grad} in order to follow the chain rule')
+                        self.dependsOn[key] += item * grad
                     else:
-                        logger.debug(f'The variable {elem} depends on {key}, which {self} does not depend on. The variable {key} is added to the dependencies of {self}')
-                        self.dependsOn[key] = item * grad[i]
+                        logger.debug(f'The variable {var} depends on {key}, which {self} does not depend on. The variable {key} is added to the dependencies of {self}')
+                        self.dependsOn[key] = item * grad
             else:
-                logger.debug(f'The variable {elem} has an empty dependency list')
-                if elem in self.dependsOn:
-                    logger.debug(f'The variable {self} already depends on the variable {elem}. The dependency of {self} on {elem} is increased with the new gradient in order to follow the chain rule')
-                    self.dependsOn[elem] += grad[i]
+                logger.debug(f'The variable {var} has an empty dependency list')
+                if var in self.dependsOn:
+                    logger.debug(f'The variable {self} already depends on the variable {var}. The dependency of {self} on {var} is increased with the new gradient in order to follow the chain rule')
+                    self.dependsOn[var] += grad
                 else:
-                    logger.debug(f'The variable {self} does not depend on the variable {elem}. The variable {elem} is added to the dependencies of {self}')
-                    self.dependsOn[elem] = grad[i]
+                    logger.debug(f'The variable {self} does not depend on the variable {var}. The variable {var} is added to the dependencies of {self}')
+                    self.dependsOn[var] = grad
 
     def _addCovariance(self, var, covariance):
         logger.debug(f'Added covariance of {covariance} between {var} and {self}')
@@ -220,11 +229,17 @@ class variable():
 
     def _calculateUncertanty(self):
 
-        # uncertanty from each measurement
-        variance = sum([(gi * var.uncert)**2 for gi, var in zip(self.dependsOn.values(), self.dependsOn.keys())])
+        # variance from each measurement
+        variance = 0
+        selfScaleToSI = self._converterToSI.convert(1, useOffset=False)
+        for var, grad in self.dependsOn.items():
+            # the gradient is scaled with the inverse of the conversion of the unit to SI units.
+            # This is necessary if the variable "var" has been converted after the dependency has been noted
+            scale = var._converterToSI.convert(1, useOffset=False) / selfScaleToSI
+            variance += (grad * scale * var.uncert)**2
         logger.debug(f'Calculated the variance without covariance to {self.uncert}')
 
-        # uncertanty from the corralation between measurements
+        # variance from the corralation between measurements
         logger.debug('Start calculation of uncertanty from covariance')
         n = len(self.dependsOn.keys())
         for i in range(n):
@@ -355,8 +370,8 @@ class variable():
                 else:
                     return 0
 
-            gradSelf = np.vectorize(gradSelf)(self.value, other.value, self.uncert)
-            gradOther = np.vectorize(gradOther)(self.value, other.value, other.uncert)
+            gradSelf = np.vectorize(gradSelf, otypes=[float])(self.value, other.value, self.uncert)
+            gradOther = np.vectorize(gradOther, otypes=[float])(self.value, other.value, other.uncert)
 
             grad = [gradSelf, gradOther]
             vars = [self, other]
@@ -384,7 +399,7 @@ class variable():
 
             val = self.value / other.value
             outputUnit = self._unitObject / other._unitObject
-            grad = [1 / other.value, self.value / (other.value**2)]
+            grad = [-1 / other.value, self.value / (other.value**2)]
             vars = [self, other]
 
             var = variable(val, outputUnit)
@@ -475,8 +490,8 @@ class variable():
             val = np.sin(self.value)
             grad = [np.cos(self.value)]
         else:
-            val = np.sin(np.deg2rad(self.value))
-            grad = [np.pi / 180 * np.cos(np.deg2rad(self.value))]
+            val = np.sin(np.pi / 180 * self.value)
+            grad = [np.pi / 180 * np.cos(np.pi / 180 * self.value)]
 
         vars = [self]
 
@@ -496,8 +511,8 @@ class variable():
             val = np.cos(self.value)
             grad = [-np.sin(self.value)]
         else:
-            val = np.cos(np.deg2rad(self.value))
-            grad = [-np.pi / 180 * np.sin(np.deg2rad(self.value))]
+            val = np.cos(np.pi / 180 * self.value)
+            grad = [-np.pi / 180 * np.sin(np.pi / 180 * self.value)]
 
         vars = [self]
 
@@ -517,8 +532,8 @@ class variable():
             val = np.tan(self.value)
             grad = [2 / (np.cos(2 * self.value) + 1)]
         else:
-            val = np.tan(np.deg2rad(self.value))
-            grad = [np.pi / 180 * 2 / (np.cos(2 * np.deg2rad(self.value)) + 1)]
+            val = np.tan(np.pi / 180 * self.value)
+            grad = [np.pi / 180 * 2 / (np.cos(2 * np.pi / 180 * self.value) + 1)]
 
         vars = [self]
 
