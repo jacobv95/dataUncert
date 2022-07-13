@@ -1106,6 +1106,42 @@ class test(unittest.TestCase):
         self.assertEqual(e.unit, 'J/µg')
         self.assertAlmostEqual(e.uncert, 13.2 * 1000 / 1e9)
 
+        a = variable(37, '°', 2.3)
+        b = a**2 * np.cos(3 * a * np.sin(a))
+        self.assertAlmostEqual(b.value, 539.274244145)
+        self.assertEqual(b.unit, '°2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((2.3 * (-44.47986837334018052364896281900061654705050149285482386191581710))**2))
+
+        a = variable(37, '°', 2.3)
+        b = np.cos(3 * a * np.sin(a))
+        a.convert('rad')
+        b *= a**2
+        self.assertAlmostEqual(b.value, 0.1642723288)
+        self.assertEqual(b.unit, 'rad2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((np.pi / 180 * 2.3 * (-0.776320153968480543428298272676994570718859842395105372525387644))**2))
+
+        a = variable(2.3, '', 0.11)
+        b = variable(1.5, 'rad', 0.89)
+        d = np.exp(a**2) * np.cos(b * np.tan(b / 9) + 17.5)
+        self.assertAlmostEqual(d.value, 90.459733187853914019107237427714051178688422865118118182659)
+        self.assertEqual(d.unit, '1')
+        dd_da = 416.11477266412800448789329216748463542196674517954334364023
+        dd_db = 59.945989031664355557893562375983977678359283356335782472980
+        self.assertAlmostEqual(d.uncert, np.sqrt((dd_da * 0.11)**2 + (dd_db * 0.89)**2))
+
+        """
+        e = \sum^{\infty}_{n=0} 1/(n!)
+        b = \sum^{\infty}_{n=0} 1/(n!) * a = e*a
+        \frac{\partial b}{\partial a} = e
+        """
+        a = variable(2.3, 'L/min', 0.0237)
+        b = variable(0, 'L/min')
+        for i in range(15):
+            b += 1 / variable(np.math.factorial(i)) * a
+        self.assertAlmostEqual(b.value, np.e * 2.3)
+        self.assertEqual(b.unit, 'L/min')
+        self.assertAlmostEqual(b.uncert, np.sqrt((np.e * 0.0237)**2))
+
 
 if __name__ == '__main__':
     unittest.main()

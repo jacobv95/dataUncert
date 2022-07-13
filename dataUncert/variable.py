@@ -399,7 +399,7 @@ class variable():
 
             val = self.value / other.value
             outputUnit = self._unitObject / other._unitObject
-            grad = [-1 / other.value, self.value / (other.value**2)]
+            grad = [1 / other.value, -self.value / (other.value**2)]
             vars = [self, other]
 
             var = variable(val, outputUnit)
@@ -420,7 +420,7 @@ class variable():
 
             val = other.value / self.value
             outputUnit = other._unitObject / self._unitObject
-            grad = [other.value / (self.value**2), 1 / (self.value)]
+            grad = [-other.value / (self.value**2), 1 / (self.value)]
             vars = [self, other]
 
             var = variable(val, outputUnit)
@@ -533,7 +533,7 @@ class variable():
             grad = [2 / (np.cos(2 * self.value) + 1)]
         else:
             val = np.tan(np.pi / 180 * self.value)
-            grad = [np.pi / 180 * 2 / (np.cos(2 * np.pi / 180 * self.value) + 1)]
+            grad = [np.pi / (90 * (np.cos(np.pi / 90 * self.value) + 1))]
 
         vars = [self]
 
