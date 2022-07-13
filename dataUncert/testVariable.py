@@ -1093,18 +1093,32 @@ class test(unittest.TestCase):
         self.assertEqual(b.unit, 'L/min')
         self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 1)**2))
 
-        c = variable(1000, 'kJ/kg', 13.2)
-        d = b * c
-        b.convert('m3/s')
-        self.assertAlmostEqual(d.value, 1000 * 200)
-        self.assertEqual(d.unit, 'L-kJ/min-kg')
-        self.assertAlmostEqual(d.uncert, np.sqrt((200 * 13.2)**2 + (1000 * np.sqrt((1 * 1.5)**2))**2))
+        b += a
+        self.assertAlmostEqual(b.value, 400)
+        self.assertEqual(b.unit, 'L/min')
+        self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 2)**2))
 
-        e = d / b
-        e.convert('J/µg')
-        self.assertAlmostEqual(e.value, 1000 * 1000 / 1e9)
-        self.assertEqual(e.unit, 'J/µg')
-        self.assertAlmostEqual(e.uncert, 13.2 * 1000 / 1e9)
+        b *= a
+        self.assertAlmostEqual(b.value, 80000)
+        self.assertEqual(b.unit, 'L2/min2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 4 * 200)**2))
+
+        b /= 23.8
+        self.assertAlmostEqual(b.value, 3361.3445378151260504201680672269)
+        self.assertEqual(b.unit, 'L2/min2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 0.16806722689075630252100840336134 * 200)**2))
+
+        b *= np.sin(a * variable(1, 'rad-min/L'))
+        self.assertAlmostEqual(b.value, -2935.453099878973383976532508069948132551783965504369163751)
+        self.assertEqual(b.unit, 'L2/min2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 2 * 200 * (2 * np.sin(200) + 200 * np.cos(200)) / 23.8)**2))
+
+        a /= variable(100, 'L/min')
+        a.convert('')
+        b /= np.exp(a)
+        self.assertAlmostEqual(b.value, -397.2703766999135885608809478456258749790006977070134430245)
+        self.assertEqual(b.unit, 'L2/min2')
+        self.assertAlmostEqual(b.uncert, np.sqrt((1.5 * 2 * 200 * np.exp(-200 / 100) * ((2 * 100 - 200) * np.sin(200) + 100 * 200 * np.cos(200)) / (23.8 * 100))**2))
 
         a = variable(37, '°', 2.3)
         b = a**2 * np.cos(3 * a * np.sin(a))
