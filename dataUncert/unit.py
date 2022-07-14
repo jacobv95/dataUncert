@@ -390,26 +390,33 @@ class unit():
     @staticmethod
     def _removeExponentFromUnit(u):
         u = list(u)
+        exponent = 1
 
-        # determine if all integers are grouped together
         integerIndexes = [i for i, char in enumerate(u) if char.isdigit()]
-        for i in range(len(integerIndexes) - 1):
-            if not integerIndexes[i + 1] == integerIndexes[i] + 1:
+        nonIntegerIndexes = [i for i in range(len(u)) if i not in integerIndexes]
+
+        # override the exponent if there are any integerindexes
+        if integerIndexes:
+            # determine if all integers are consectutive together
+            # sum(a, a+1, ... b-1, b) = (b * (b-1) - a * (a-1)) / 2
+            minIndex, maxIndex = integerIndexes[0] - 1, integerIndexes[-1]
+            if sum(integerIndexes) != (maxIndex * (maxIndex + 1) - minIndex * (minIndex + 1)) / 2:
                 logger.error('All numbers in the unit has to be grouped together')
                 raise ValueError('All numbers in the unit has to be grouped together')
 
-        # Determien if the last integer is placed at the end of the unit
-        if len(integerIndexes) and (integerIndexes[-1] != len(u) - 1):
-            logger.error('Any number has to be placed at the end of the unit')
-            raise ValueError('Any number has to be placed at the end of the unit')
+            # Determien if the last integer is placed at the end of the unit
+            if integerIndexes[-1] != len(u) - 1:
+                logger.error('Any number has to be placed at the end of the unit')
+                raise ValueError('Any number has to be placed at the end of the unit')
 
-        # split the unit and exponent
-        exponent = [char for i, char in enumerate(u) if i in integerIndexes]
-        exponent = int(''.join(exponent)) if len(exponent) else 1
-        u = ''.join([char for i, char in enumerate(u) if i not in integerIndexes])
+            # join the integers
+            exponent = int(''.join([u[i] for i in integerIndexes]))
+
+        # join the unit
+        u = ''.join([u[i] for i in nonIntegerIndexes])
 
         # Ensure that the entire use was not removed by removing the integers
-        if not len(u):
+        if not u:
             # No symbols are left after removing the integers
             if exponent == 1:
                 u = '1'
