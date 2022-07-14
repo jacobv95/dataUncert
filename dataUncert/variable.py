@@ -3,7 +3,6 @@ logger = logging.getLogger(__name__)
 import numpy as np
 from dataUncert.unit import unit
 
-
 HANDLED_FUNCTIONS = {}
 
 
@@ -95,32 +94,29 @@ class variable():
     def printUncertanty(self, value, uncert):
         # function to print number
         if uncert == 0 or uncert is None:
-            value = f'{value:.{self.nDigits}g}'
-            uncert = None
+            return f'{value:.{self.nDigits}g}', None
+
+        digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
+        digitsValue = -int(np.floor(np.log10(np.abs(value))))
+
+        # uncertanty
+        if digitsUncert > 0:
+            uncert = f'{uncert:.{1}g}'
         else:
-            digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
-            digitsValue = -int(np.floor(np.log10(np.abs(value))))
+            nDecimals = len(str(int(uncert)))
+            uncert = int(np.around(uncert, -nDecimals + 1))
 
-            # uncertanty
+        # value
+        if digitsValue <= digitsUncert:
             if digitsUncert > 0:
-                uncert = f'{uncert:.{1}g}'
+                value = f'{value:.{digitsUncert}f}'
             else:
-                nDecimals = len(str(int(uncert)))
-                uncert = int(np.around(uncert, -nDecimals + 1))
+                value = int(np.around(value, - nDecimals + 1))
+        else:
+            value = '0'
+            if digitsUncert > 0:
+                value += '.' + ''.join(['0'] * digitsUncert)
 
-            # value
-            if digitsValue <= digitsUncert:
-                if digitsUncert > 0:
-                    value = f'{value:.{digitsUncert}f}'
-                else:
-                    value = int(np.around(value, - nDecimals + 1))
-            else:
-
-                value = '0'
-                if digitsUncert > 0:
-                    value += '.'
-                    for i in range(digitsUncert):
-                        value += '0'
         return value, uncert
 
     def __str__(self, pretty=None) -> str:
@@ -197,34 +193,31 @@ class variable():
                 return out
 
     def _addDependents(self, vars, grads):
+        # loop over the variables and their gradients
         for var, grad in zip(vars, grads):
-
             # scale the gradient to SI units. This is necessary if one of the variables are converted after the dependency has been noted
             scale = self._converterToSI.convert(1, useOffset=False) / var._converterToSI.convert(1, useOffset=False)
             grad *= scale
 
-            logger.debug(f'Adding dependency of {var} with a gradient of {grad} to {self}')
+            # check if the variable depends on other variables
             if var.dependsOn:
-                logger.debug(f'The variable {var} has dependencies. These are iterated over and added to {self}')
+
+                # loop over the dependencies of the variables and add them to the dependencies of self.
+                # this ensures that the product rule is used
                 for key, item in var.dependsOn.items():
                     if key in self.dependsOn:
-                        logger.debug(
-                            f'The variable {var} depends on {key} with a gradient of {item}. The variable {self} also depends on {key} with a gradient of {self.dependsOn[key]}. The dependency of {self} on {key} is increased with {item} multiplied with {grad} in order to follow the chain rule')
                         self.dependsOn[key] += item * grad
                     else:
-                        logger.debug(f'The variable {var} depends on {key}, which {self} does not depend on. The variable {key} is added to the dependencies of {self}')
                         self.dependsOn[key] = item * grad
             else:
-                logger.debug(f'The variable {var} has an empty dependency list')
+
+                # the variable did not have any dependecies. Therefore the the varaible is added to the dependencies of self
                 if var in self.dependsOn:
-                    logger.debug(f'The variable {self} already depends on the variable {var}. The dependency of {self} on {var} is increased with the new gradient in order to follow the chain rule')
                     self.dependsOn[var] += grad
                 else:
-                    logger.debug(f'The variable {self} does not depend on the variable {var}. The variable {var} is added to the dependencies of {self}')
                     self.dependsOn[var] = grad
 
     def _addCovariance(self, var, covariance):
-        logger.debug(f'Added covariance of {covariance} between {var} and {self}')
         self.covariance[var] = covariance
 
     def _calculateUncertanty(self):
@@ -237,18 +230,14 @@ class variable():
             # This is necessary if the variable "var" has been converted after the dependency has been noted
             scale = var._converterToSI.convert(1, useOffset=False) / selfScaleToSI
             variance += (grad * scale * var.uncert)**2
-        logger.debug(f'Calculated the variance without covariance to {self.uncert}')
 
         # variance from the corralation between measurements
-        logger.debug('Start calculation of uncertanty from covariance')
         n = len(self.dependsOn.keys())
         for i in range(n):
             var_i = list(self.dependsOn.keys())[i]
-            logger.debug(f'Set variable i to {var_i}')
             for j in range(i + 1, n):
                 if i != j:
                     var_j = list(self.dependsOn.keys())[j]
-                    logger.debug(f'Set variable j to {var_j}')
                     if var_j in var_i.covariance.keys():
                         if not var_i in var_j.covariance.keys():
                             logger.error(
@@ -257,89 +246,77 @@ class variable():
                                 f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
                         varianceContribution = 2 * self.dependsOn[var_i] * self.dependsOn[var_j] * var_i.covariance[var_j][0]
                         variance += varianceContribution
-                        logger.debug(f'The covariance between variable i and variable j added {varianceContribution} to the variance.')
-                    else:
-                        logger.debug('No information about the covariance between variable i and variable j')
 
         self.uncert = np.sqrt(variance)
         logger.info(f'Calculated uncertanty to {self.uncert}')
 
     def __add__(self, other):
         logger.info(f'Adding together {self} and {other}')
-        logger.debug(f'Begin adding {self} and {other}')
-        if isinstance(other, variable):
-            try:
-                outputUnit = self._unitObject + other._unitObject
-            except ValueError:
-                logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
-                raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
-            val = self.value + other.value
-            grad = [1, 1]
-            vars = [self, other]
+        if not isinstance(other, variable):
+            return self + variable(other, self.unit)
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        try:
+            outputUnit = self._unitObject + other._unitObject
+        except ValueError:
+            logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
+            raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
-            logger.debug(f'Finished adding {self} and {other}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, self.unit)
-            return self + other
+        val = self.value + other.value
+        grad = [1, 1]
+        vars = [self, other]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
 
     def __radd__(self, other):
         return self + other
 
     def __sub__(self, other):
         logger.info(f'Subtracting {other} from {self}')
-        logger.debug(f'Begin subtracting {other} from {self}')
-        if isinstance(other, variable):
-            try:
-                outputUnit = self._unitObject - other._unitObject
-            except ValueError:
-                logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
-                raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
-            val = self.value - other.value
-            grad = [1, -1]
-            vars = [self, other]
+        if not isinstance(other, variable):
+            return self - variable(other, self.unit)
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        try:
+            outputUnit = self._unitObject - other._unitObject
+        except ValueError:
+            logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
+            raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
-            logger.debug(f'Finished subtracting {other} from {self}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, self.unit)
-            return self - other
+        val = self.value - other.value
+        grad = [1, -1]
+        vars = [self, other]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
 
     def __rsub__(self, other):
         return - self + other
 
     def __mul__(self, other):
         logger.info(f'Multiplying {self} and {other}')
-        logger.debug(f'Begining to multiply {self} and {other}')
-        if isinstance(other, variable):
-            outputUnit = self._unitObject * other._unitObject
 
-            val = self.value * other.value
-            grad = [other.value, self.value]
-            vars = [self, other]
+        if not isinstance(other, variable):
+            return self * variable(other)
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        outputUnit = self._unitObject * other._unitObject
 
-            logger.debug(f'Finished multiplying {self} and {other}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, '1')
-            return self * other
+        val = self.value * other.value
+        grad = [other.value, self.value]
+        vars = [self, other]
+
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+
+        return var
 
     def __rmul__(self, other):
         return self * other
@@ -347,92 +324,76 @@ class variable():
     def __pow__(self, other):
         logger.info(f'Raising {self} to the power of {other}')
 
-        if isinstance(other, variable):
-            if isinstance(other.value, np.ndarray):
-                logger.error('The exponent has to be a single number')
-                raise ValueError('The exponent has to be a single number')
-            if str(other.unit) != '1':
-                logger.error('The exponent can not have a unit')
-                raise ValueError('The exponent can not have a unit')
+        if not isinstance(other, variable):
+            return self ** variable(other)
 
-            val = self.value ** other.value
-            outputUnit = self._unitObject ** other.value
+        if isinstance(other.value, np.ndarray):
+            logger.error('The exponent has to be a single number')
+            raise ValueError('The exponent has to be a single number')
+        if str(other.unit) != '1':
+            logger.error('The exponent can not have a unit')
+            raise ValueError('The exponent can not have a unit')
 
-            def gradSelf(valSelf, valOther, uncertSelf):
-                if uncertSelf != 0:
-                    return valOther * valSelf ** (valOther - 1)
-                else:
-                    return 0
+        val = self.value ** other.value
+        outputUnit = self._unitObject ** other.value
 
-            def gradOther(valSelf, valOther, uncertOther):
-                if uncertOther != 0:
-                    return valSelf ** valOther * np.log(valSelf)
-                else:
-                    return 0
+        def gradSelf(valSelf, valOther, uncertSelf):
+            if uncertSelf != 0:
+                return valOther * valSelf ** (valOther - 1)
+            else:
+                return 0
 
-            gradSelf = np.vectorize(gradSelf, otypes=[float])(self.value, other.value, self.uncert)
-            gradOther = np.vectorize(gradOther, otypes=[float])(self.value, other.value, other.uncert)
+        def gradOther(valSelf, valOther, uncertOther):
+            if uncertOther != 0:
+                return valSelf ** valOther * np.log(valSelf)
+            else:
+                return 0
 
-            grad = [gradSelf, gradOther]
-            vars = [self, other]
+        gradSelf = np.vectorize(gradSelf, otypes=[float])(self.value, other.value, self.uncert)
+        gradOther = np.vectorize(gradOther, otypes=[float])(self.value, other.value, other.uncert)
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        grad = [gradSelf, gradOther]
+        vars = [self, other]
 
-            logger.debug(f'Finished raising {self} to the power of {other}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, '1')
-            return self ** other
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
+        return var
 
     def __rpow__(self, other):
-        logger.debug(f'{other} is converted to a variable')
-        other = variable(other, '1')
-        return other ** self
+        return variable(other, '1') ** self
 
     def __truediv__(self, other):
         logger.info(f'Dividing {self} with {other}')
-        logger.debug(f'Beginning to divide {self} with {other}')
-        if isinstance(other, variable):
+        if not isinstance(other, variable):
+            return self / variable(other)
 
-            val = self.value / other.value
-            outputUnit = self._unitObject / other._unitObject
-            grad = [1 / other.value, -self.value / (other.value**2)]
-            vars = [self, other]
+        val = self.value / other.value
+        outputUnit = self._unitObject / other._unitObject
+        grad = [1 / other.value, -self.value / (other.value**2)]
+        vars = [self, other]
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
 
-            logger.debug(f'Finished dividing {self} with {other}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, '1')
-            return self / other
+        return var
 
     def __rtruediv__(self, other):
         logger.info(f'Dividing {other} with {self}')
-        logger.debug(f'Begginig to divide {other} with {self}')
-        if isinstance(other, variable):
+        if not isinstance(other, variable):
+            return variable(other) / self
 
-            val = other.value / self.value
-            outputUnit = other._unitObject / self._unitObject
-            grad = [-other.value / (self.value**2), 1 / (self.value)]
-            vars = [self, other]
+        val = other.value / self.value
+        outputUnit = other._unitObject / self._unitObject
+        grad = [-other.value / (self.value**2), 1 / (self.value)]
+        vars = [self, other]
 
-            var = variable(val, outputUnit)
-            var._addDependents(vars, grad)
-            var._calculateUncertanty()
+        var = variable(val, outputUnit)
+        var._addDependents(vars, grad)
+        var._calculateUncertanty()
 
-            logger.debug('Finished dividing {other} with {self}')
-            return var
-        else:
-            logger.debug(f'{other} is converted to a variable')
-            other = variable(other, '1')
-            return other / self
+        return var
 
     def __neg__(self):
         logger.info(f'Negating {self}')
@@ -440,7 +401,6 @@ class variable():
 
     def log(self):
         logger.info(f'Taking the natural log of {self}')
-        logger.debug(f'Beginning to take the natural log of {self}')
         if self.unit != '1':
             logger.error('You can only take the natural log of a variable if it has no unit')
             raise ValueError('You can only take the natural log of a variable if it has no unit')
@@ -453,12 +413,11 @@ class variable():
         var._addDependents(vars, grad)
         var._calculateUncertanty()
 
-        logger.debug(f'Finished taking the natural log of {self}')
         return var
 
     def log10(self):
         logger.info(f'Taking the base 10 log of {self}')
-        logger.debug(f'Beginning to take the base 10 log of {self}')
+
         if self.unit != '1':
             logger.error('You can only take the base 10 log of a variable if it has no unit')
             raise ValueError('You can only take the base 10 log of a variable if it has no unit')
@@ -471,7 +430,6 @@ class variable():
         var._addDependents(vars, grad)
         var._calculateUncertanty()
 
-        logger.debug(f'Finished taking the base 10 log of {self}')
         return var
 
     def exp(self):

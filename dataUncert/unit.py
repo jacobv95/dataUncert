@@ -1,3 +1,4 @@
+from code import interact
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
@@ -159,8 +160,8 @@ class unit():
             unitStr = '1'
 
         # split the unit in upper and lower
-        self.upper, self.lower = self._splitCompositeUnit(unitStr)
-        logger.debug(f'The unit {unitStr} was split in to an upper {self.upper} and lower {self.lower}')
+        self.unitStr = self._formatUnit(unitStr)
+        self.upper, self.lower = self._splitCompositeUnit(self.unitStr)
 
         # split the units in unit and exponent
         self.upperExp = []
@@ -179,11 +180,6 @@ class unit():
         self.lowerPrefix = [None] * len(self.lower)
 
         self._isUnitKnown()
-
-        logger.debug(f'The upper is split in to the units {self.upper} and the exponents {self.upperExp}')
-        logger.debug(f'The lower is split in to the units {self.lower} and the exponents {self.lowerExp}')
-
-        logger.debug(f'Created new unit based on the sting "{self.unitStr}"')
 
     @staticmethod
     def _cancleUnits(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
@@ -242,57 +238,45 @@ class unit():
         lowerPrefixCombined = []
         lowerExpCombined = []
         for up, prefix, exp in zip(upper, upperPrefix, upperExp):
-            up = unit(up)
-            for i in range(len(up.upper)):
-                upperCombined.append(f'{up.upper[i]}')
-                upperExpCombined.append(up.upperExp[i] * exp)
+            upUpper, upLower = unit._splitCompositeUnit(up)
+            for upUp in upUpper:
+                upUp, upUpExp = unit._removeExponentFromUnit(upUp)
+                upperCombined.append(upUp)
+                upperExpCombined.append(upUpExp * exp)
                 upperPrefixCombined.append(prefix)
-            for i in range(len(up.lower)):
-                lowerCombined.append(f'{up.lower[i]}')
-                lowerExpCombined.append(up.lowerExp[i] * exp)
+            for upLow in upLower:
+                upLow, upLowExp = unit._removeExponentFromUnit(upLow)
+                lowerCombined.append(upLow)
+                lowerExpCombined.append(upLowExp * exp)
                 lowerPrefixCombined.append(prefix)
         for low, prefix, exp in zip(lower, lowerPrefix, lowerExp):
-            low = unit(low)
-            for i in range(len(low.upper)):
-                lowerCombined.append(f'{low.upper[i]}')
-                lowerExpCombined.append(low.upperExp[i] * exp)
+            lowUpper, lowLower = unit._splitCompositeUnit(low)
+            for lowUp in lowUpper:
+                lowUp, lowUpExp = unit._removeExponentFromUnit(lowUp)
+                lowerCombined.append(lowUp)
+                lowerExpCombined.append(lowUpExp * exp)
                 lowerPrefixCombined.append(prefix)
-            for i in range(len(low.lower)):
-                upperCombined.append(f'{pre}{low.lower[i]}{low.lowerExp[i] + exp}')
-                lowerExpCombined.append(low.lowerExp[i] * exp)
+            for lowLow in lowLower:
+                lowLow, lowLowExp = unit._splitCompositeUnit(lowLow)
+                upperCombined.append(lowLow)
+                lowerExpCombined.append(lowLowExp * exp)
                 upperPrefixCombined.append(prefix)
 
-        upper = upperCombined
-        upperExp = upperExpCombined
-        upperPrefix = upperPrefixCombined
-        lower = lowerCombined
-        lowerExp = lowerExpCombined
-        lowerPrefix = lowerPrefixCombined
-
         # create a unit string
-        u = ''
-        for i, (up, pre, exp) in enumerate(zip(upper, upperPrefix, upperExp)):
-            if up != '1':
-                if not pre is None:
-                    up = pre + up
-                if exp > 1:
-                    up += str(exp)
-            u += up
-            if i < len(upper) - 1:
-                u += '-'
+        u = '-'.join([
+            f'{pre if not pre is None else ""}{up}{exp if exp>1 else ""}'
+            for up, pre, exp in zip(upperCombined, upperPrefixCombined, upperExpCombined)
+            if up != '1'
+        ])
 
-        if lower:
-            if not (len(lower) == 1 and lower[0] == '1'):
-                u += '/'
-                for i, (low, pre, exp) in enumerate(zip(lower, lowerPrefix, lowerExp)):
-                    if low != '1':
-                        if not pre is None:
-                            low = pre + low
-                        if exp > 1:
-                            low += str(exp)
-                    u += low
-                    if i < len(lower) - 1:
-                        u += '-'
+        if lowerCombined:
+            lower = '-'.join([
+                f'{pre if not pre is None else ""}{low}{exp if exp>1 else ""}'
+                for low, pre, exp in zip(lowerCombined, lowerPrefixCombined, lowerExpCombined)
+                if low != '1'
+            ])
+            if lower:
+                u = f'{u}/{lower}'
 
         return unit(u)
 
@@ -375,94 +359,66 @@ class unit():
                     self.lowerPrefix[index] = prefix
                     self.lower[index] = un
 
-    def _splitCompositeUnit(self, compositeUnit):
-        logger.debug(f'Splitting the unit {compositeUnit} in to its parts')
+    @staticmethod
+    def _formatUnit(unit):
+        logger.debug(f'Splitting the unit {unit} in to its parts')
 
         logger.debug('Removing any illegal symbols')
         special_characters = """!@#$%^&*()+?_=.,<>\\"""
-        if any(s in compositeUnit for s in special_characters):
+        if any(s in unit for s in special_characters):
             logger.error('The unit can only contain slashes (/), hyphens (-)')
             raise ValueError('The unit can only contain slashes (/), hyphens (-)')
 
         logger.debug('Removing any spaces')
-        compositeUnit = compositeUnit.replace(' ', '')
+        unit = unit.replace(' ', '')
 
-        self.unitStr = compositeUnit
+        return unit
 
-        slash = '/'
-        if slash in compositeUnit:
-            logger.debug('A slash was found in the unit. This indicates that the unit has an upper and a lower part')
-            index = compositeUnit.find(slash)
-            upper = compositeUnit[0:index]
-            lower = compositeUnit[index + 1:]
+    @staticmethod
+    def _splitCompositeUnit(compositeUnit):
+        compositeUnit = compositeUnit.split('/')
 
-            # check for multiple slashes
-            if slash in upper or slash in lower:
-                logger.error('A unit can only have a single slash (/)')
-                raise ValueError('A unit can only have a single slash (/)')
+        if len(compositeUnit) > 2:
+            logger.error('A unit can only have a single slash (/)')
+            raise ValueError('A unit can only have a single slash (/)')
 
-            upper = upper.split('-')
-            lower = lower.split('-')
-            logger.debug('Split the upper and lower based on hyphens (-). Upper is therefore {upper} and lower is {lower}')
+        upper = compositeUnit[0].split('-')
+        lower = compositeUnit[1].split('-') if len(compositeUnit) > 1 else []
 
-        else:
-            upper = compositeUnit.split('-')
-            lower = []
-            logger.debug(f'No slashes were found. This indicates that the unit has no denominator. The upper is therefore {upper} whereas the lower is an empty list')
-
-        logger.debug(f'The unit {compositeUnit} was split in an upper and a lower unit: {upper} and {lower}')
         return upper, lower
 
-    def _removeExponentFromUnit(self, un):
-        logger.debug(f'The exponent is removed from the unit {un}')
+    @staticmethod
+    def _removeExponentFromUnit(u):
+        u = list(u)
 
-        logger.debug(f'Finding any integers in the unit {un}')
-        num = []
-        num_indexes = []
-        for i, s in enumerate(un):
-            if s.isdigit():
-                logger.debug(f'The integer {s} was found at index {i}')
-                num.append(s)
-                num_indexes.append(i)
-
-        logger.debug(f'Determine if all integers are placed consequtively')
-        for i in range(len(num_indexes) - 1):
-            elem_curr = num_indexes[i]
-            elem_next = num_indexes[i + 1]
-            if not elem_next == elem_curr + 1:
+        # determine if all integers are grouped together
+        integerIndexes = [i for i, char in enumerate(u) if char.isdigit()]
+        for i in range(len(integerIndexes) - 1):
+            if not integerIndexes[i + 1] == integerIndexes[i] + 1:
                 logger.error('All numbers in the unit has to be grouped together')
                 raise ValueError('All numbers in the unit has to be grouped together')
 
-        logger.debug(f'Determien if the last integer is placed at the end of the unit')
-        if len(num) != 0:
-            if max(num_indexes) != len(un) - 1:
-                logger.error('Any number has to be placed at the end of the unit')
-                raise ValueError('Any number has to be placed at the end of the unit')
+        # Determien if the last integer is placed at the end of the unit
+        if len(integerIndexes) and (integerIndexes[-1] != len(u) - 1):
+            logger.error('Any number has to be placed at the end of the unit')
+            raise ValueError('Any number has to be placed at the end of the unit')
 
-        logger.debug(f'Remove the inters from the unit')
-        if len(num) != 0:
-            for i in reversed(num_indexes):
-                un = un[0:i] + un[i + 1:]
+        # split the unit and exponent
+        exponent = [char for i, char in enumerate(u) if i in integerIndexes]
+        exponent = int(''.join(exponent)) if len(exponent) else 1
+        u = ''.join([char for i, char in enumerate(u) if i not in integerIndexes])
 
-        logger.debug('Combine the exponents')
-        if len(num) != 0:
-            exponent = int(''.join(num))
-        else:
-            exponent = 1
-
-        logger.debug('Ensure that the entire use was not removed by removing the integers')
-        if len(un) == 0:
-            logger.debug('No symbols are left after removing the integers')
+        # Ensure that the entire use was not removed by removing the integers
+        if not len(u):
+            # No symbols are left after removing the integers
             if exponent == 1:
-                un = '1'
-                logger.debug('The integers removed was equal to 1. This is due to the unit THE unit')
+                u = '1'
             else:
-                logger.error(f'The unit {un} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
+                logger.error(f'The unit {u} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
                 raise ValueError(
-                    f'The unit {un} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
+                    f'The unit {u} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
 
-        logger.debug(f'Return the unit {un} and the exponent {exponent}')
-        return un, exponent
+        return u, exponent
 
     def _assertEqual(self, other):
 
@@ -734,3 +690,7 @@ class unit():
 
         return out
 
+
+if __name__ == '__main__':
+    upper, lower = unit._splitCompositeUnit('kg-m/s2')
+    print(upper, lower)
