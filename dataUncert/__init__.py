@@ -5,7 +5,6 @@ import datetime
 # Create a main logger and set the default level low
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.propagate = False
 
 
 def addStreamHandler(lgr):

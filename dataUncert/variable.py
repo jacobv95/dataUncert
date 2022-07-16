@@ -244,7 +244,9 @@ class variable():
                                 f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
                             raise ValueError(
                                 f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
-                        varianceContribution = 2 * self.dependsOn[var_i] * self.dependsOn[var_j] * var_i.covariance[var_j][0]
+                        scale_i = var_i._converterToSI.convert(1, useOffset=False) / selfScaleToSI
+                        scale_j = var_j._converterToSI.convert(1, useOffset=False) / selfScaleToSI
+                        varianceContribution = 2 * scale_i * self.dependsOn[var_i] * scale_j * self.dependsOn[var_j] * var_i.covariance[var_j][0]
                         variance += varianceContribution
 
         self.uncert = np.sqrt(variance)

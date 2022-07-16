@@ -696,8 +696,3 @@ class unit():
                     out *= conv
 
         return out
-
-
-if __name__ == '__main__':
-    upper, lower = unit._splitCompositeUnit('kg-m/s2')
-    print(upper, lower)

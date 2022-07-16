@@ -1156,6 +1156,27 @@ class test(unittest.TestCase):
         self.assertEqual(b.unit, 'L/min')
         self.assertAlmostEqual(b.uncert, np.sqrt((np.e * 0.0237)**2))
 
+    def testCovariance(self):
+        a = variable(123, 'L/min', 9.7)
+        b = variable(93, 'Pa', 1.2)
+        a._addCovariance(b, [23])
+        b._addCovariance(a, [23])
+        c = a * b
+        self.assertEqual(c.value, 123 * 93)
+        self.assertEqual(c.unit, 'L-Pa/min')
+        self.assertEqual(c.uncert, np.sqrt((123 * 1.2)**2 + (93 * 9.7)**2 + 2 * 93 * 123 * 23))
+
+
+        a = variable(123, 'L/min', 9.7)
+        b = variable(93, 'Pa', 1.2)
+        a._addCovariance(b, [23])
+        b._addCovariance(a, [23])
+        a.convert('m3/s')
+        c = a * b
+        self.assertEqual(c.value, 123 * 93 / 1000 / 60)
+        self.assertEqual(c.unit, 'm3-Pa/s')
+        self.assertEqual(c.uncert, np.sqrt((123 / 1000 / 60 * 1.2)**2 + (93 * 9.7 / 1000 / 60)**2 + 2 * 93 * 123 / 1000 / 60 * 23))
+
 
 if __name__ == '__main__':
     unittest.main()
