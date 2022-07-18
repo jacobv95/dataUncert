@@ -1,4 +1,3 @@
-from code import interact
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
@@ -229,54 +228,18 @@ class unit():
     @staticmethod
     def _combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
 
-        # the upper and lower units might have been converted to a combination unit
-        # these has to be distributed to the upper and lower
-        upperCombined = []
-        upperPrefixCombined = []
-        upperExpCombined = []
-        lowerCombined = []
-        lowerPrefixCombined = []
-        lowerExpCombined = []
-        for up, prefix, exp in zip(upper, upperPrefix, upperExp):
-            upUpper, upLower = unit._splitCompositeUnit(up)
-            for upUp in upUpper:
-                upUp, upUpExp = unit._removeExponentFromUnit(upUp)
-                upperCombined.append(upUp)
-                upperExpCombined.append(upUpExp * exp)
-                upperPrefixCombined.append(prefix)
-            for upLow in upLower:
-                upLow, upLowExp = unit._removeExponentFromUnit(upLow)
-                lowerCombined.append(upLow)
-                lowerExpCombined.append(upLowExp * exp)
-                lowerPrefixCombined.append(prefix)
-        for low, prefix, exp in zip(lower, lowerPrefix, lowerExp):
-            lowUpper, lowLower = unit._splitCompositeUnit(low)
-            for lowUp in lowUpper:
-                lowUp, lowUpExp = unit._removeExponentFromUnit(lowUp)
-                lowerCombined.append(lowUp)
-                lowerExpCombined.append(lowUpExp * exp)
-                lowerPrefixCombined.append(prefix)
-            for lowLow in lowLower:
-                lowLow, lowLowExp = unit._splitCompositeUnit(lowLow)
-                upperCombined.append(lowLow)
-                lowerExpCombined.append(lowLowExp * exp)
-                upperPrefixCombined.append(prefix)
+        upperPrefix = [elem if not elem is None else "" for elem in upperPrefix]
+        lowerPrefix = [elem if not elem is None else "" for elem in lowerPrefix]
+        upperExp = [str(elem) if elem != 1 else "" for elem in upperExp]
+        lowerExp = [str(elem) if elem != 1 else "" for elem in lowerExp]
+        upper = [pre + up + exp for pre, up, exp in zip(upperPrefix, upper, upperExp) if up != "1"]
+        lower = [pre + low + exp for pre, low, exp in zip(lowerPrefix, lower, lowerExp) if low != "1"]
 
         # create a unit string
-        u = '-'.join([
-            f'{pre if not pre is None else ""}{up}{exp if exp>1 else ""}'
-            for up, pre, exp in zip(upperCombined, upperPrefixCombined, upperExpCombined)
-            if up != '1'
-        ])
-
-        if lowerCombined:
-            lower = '-'.join([
-                f'{pre if not pre is None else ""}{low}{exp if exp>1 else ""}'
-                for low, pre, exp in zip(lowerCombined, lowerPrefixCombined, lowerExpCombined)
-                if low != '1'
-            ])
-            if lower:
-                u = f'{u}/{lower}'
+        u = '-'.join(upper) if upper else "1"
+        if lower:
+            lower = '-'.join(lower)
+            u = u + '/' + lower
 
         return unit(u)
 
@@ -326,7 +289,7 @@ class unit():
             return out
 
     def _isUnitKnown(self):
-        logger.debug(f'Determine if the unit is known within the unitsystem')
+        # Determine if the unit is known within the unitsystem
 
         upperBools = [True] * len(self.upper) + [False] * len(self.lower)
         units = self.upper + self.lower
@@ -342,9 +305,9 @@ class unit():
                     raise ValueError(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
 
                 if un in baseUnit:
-                    logger.error(f'The unit ({prefix}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
+                    logger.error(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
                     raise ValueError(
-                        f'The unit ({prefix}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
+                        f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
 
                 # look for the unit without the prefix
                 if not un in knownUnits:
@@ -359,22 +322,20 @@ class unit():
                     self.lowerPrefix[index] = prefix
                     self.lower[index] = un
 
-    @staticmethod
+    @ staticmethod
     def _formatUnit(unit):
-        logger.debug(f'Splitting the unit {unit} in to its parts')
-
-        logger.debug('Removing any illegal symbols')
+        # Removing any illegal symbols
         special_characters = """!@#$%^&*()+?_=.,<>\\"""
         if any(s in unit for s in special_characters):
             logger.error('The unit can only contain slashes (/), hyphens (-)')
             raise ValueError('The unit can only contain slashes (/), hyphens (-)')
 
-        logger.debug('Removing any spaces')
+        # Removing any spaces
         unit = unit.replace(' ', '')
 
         return unit
 
-    @staticmethod
+    @ staticmethod
     def _splitCompositeUnit(compositeUnit):
         compositeUnit = compositeUnit.split('/')
 
@@ -387,13 +348,12 @@ class unit():
 
         return upper, lower
 
-    @staticmethod
+    @ staticmethod
     def _removeExponentFromUnit(u):
         u = list(u)
+        lenU = len(u)
         exponent = 1
-
-        integerIndexes = [i for i, char in enumerate(u) if char.isdigit()]
-        nonIntegerIndexes = [i for i in range(len(u)) if i not in integerIndexes]
+        integerIndexes = [i for i, char in enumerate(u) if char in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']]
 
         # override the exponent if there are any integerindexes
         if integerIndexes:
@@ -405,7 +365,7 @@ class unit():
                 raise ValueError('All numbers in the unit has to be grouped together')
 
             # Determien if the last integer is placed at the end of the unit
-            if integerIndexes[-1] != len(u) - 1:
+            if integerIndexes[-1] != lenU - 1:
                 logger.error('Any number has to be placed at the end of the unit')
                 raise ValueError('Any number has to be placed at the end of the unit')
 
@@ -413,17 +373,16 @@ class unit():
             exponent = int(''.join([u[i] for i in integerIndexes]))
 
         # join the unit
-        u = ''.join([u[i] for i in nonIntegerIndexes])
+        u = ''.join([u[i] for i in range(lenU) if i not in integerIndexes])
 
         # Ensure that the entire use was not removed by removing the integers
         if not u:
             # No symbols are left after removing the integers
-            if exponent == 1:
-                u = '1'
-            else:
+            if exponent != 1:
                 logger.error(f'The unit {u} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
                 raise ValueError(
                     f'The unit {u} was stripped of all integers which left no symbols in the unit. This is normally due to the integers removed being equal to 1, as the unit is THE unit. Howver, the intergers removed was not equal to 1. The unit is therefore not known.')
+            u = '1'
 
         return u, exponent
 

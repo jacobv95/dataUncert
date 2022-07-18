@@ -105,8 +105,6 @@ class _readData():
         self.readCol = readCol
 
         # read the data
-        logger.debug(
-            f'reading data from the file {xlFile}. The data is read from coloum {self.dataStartCol} to coloumn {self.dataEndCol}. The uncertanty is read from coloumn {self.uncertStartCol} to coloumn {self.uncertEndCol}')
         self.readData()
 
     def colToIndex(self, col):
@@ -192,9 +190,8 @@ class _readData():
     def readData(self):
         self.dat = _Data()
 
-        logger.debug('Looping over the sheets in the data file')
+        # Looping over the sheets in the data file
         for i, sheet in enumerate(self.sheets):
-            logger.debug(f'Opening the sheet {sheet}')
             sheetData = _Sheet(f's{i+1}')
 
             # determine the number of variables
@@ -213,7 +210,6 @@ class _readData():
                 logger.error('There are not an equal amount of rows in the data')
                 raise ValueError('There are not an equal amount of rows in the data')
             nDataPoint = nDataPoints[0]
-            logger.debug(f'A total of {nDataPoint} rows of data are found in the sheet {sheet}')
 
             # read the data
             data = np.zeros([nDataPoint, self.nCols])
@@ -232,7 +228,6 @@ class _readData():
                     logger.error('There are not an equal amount of rows in the uncertanty')
                     raise ValueError('There are not an equal amount of rows in the uncertanty')
                 nUncertanty = nUncertanties[0]
-                logger.debug(f'A total of {nUncertanty} rows of uncertanty are found in the sheet {sheet}')
 
                 # evaluate the number of rows of the uncertanty
                 if nUncertanty not in [nDataPoint, nDataPoint * self.nCols]:
@@ -240,7 +235,7 @@ class _readData():
                     raise ValueError('The number of rows in the uncertanty has to be equal to the number of rows of data or equal to the number of rows of data multiplied with the number of coloumns in the data')
 
                 if nUncertanty == nDataPoint:
-                    logger.debug(f'There is one row of uncertanty for each row of data. Therefore there are no covariance data in the sheet {sheet}')
+                    # There is one row of uncertanty for each row of data. Therefore there are no covariance data in the sheet
 
                     # read the uncertanty
                     uncert = np.zeros([nDataPoint, self.nCols])
@@ -258,7 +253,7 @@ class _readData():
 
                         sheetData._addMeasurement(name, var)
                 else:
-                    logger.debug(f'There is {self.nCols} rows of uncertanty for each row of data. Therefore there are covariance data in the sheet {sheet}')
+                    # There are covariance data in the sheet
 
                     # read the uncertanty
                     uncert = []
@@ -297,7 +292,7 @@ class _readData():
                     for head, var in zip(headers, vars):
                         sheetData._addMeasurement(head, var)
             else:
-                logger.debug(f'There are no uncertaty data in the sheet {sheet}')
+                # There are no uncertaty data in the sheet
 
                 # create the measurements without uncertanties
                 for i in range(self.nCols):
@@ -314,10 +309,8 @@ class _Data():
     def __init__(self, name=''):
         self.name = name
         self.sheets = []
-        logger.debug(f'Creating a data object {self}')
 
     def _addSheet(self, name, sheet):
-        logger.debug(f'Adding a sheet with the name {name} to the data object {self}')
         sheet.name = name
         sheetNames = [elem.name for elem in self.sheets]
         if name in sheetNames:
@@ -340,13 +333,11 @@ class _Data():
 
 class _Sheet():
     def __init__(self, name=''):
-        logger.debug(f'Creating a sheet object {self}')
         self.name = name
         self.measurements = []
         self.measurementNames = []
 
     def _addMeasurement(self, name, var):
-        logger.debug(f'Adding a measurement with the name {name} to the sheet object {self}')
         self.measurements.append(var)
         self.measurementNames.append(name)
         setattr(self, name, var)
