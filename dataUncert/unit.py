@@ -1,7 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from copy import deepcopy
 
 
 class _unitConversion():
@@ -153,17 +152,6 @@ for key, d in knownUnitsDict.items():
 
 
 class unit():
-    def __init__(self, unitStr) -> None:
-        if unitStr == '':
-            unitStr = '1'
-
-        # split the unit in upper and lower
-        self.unitStr = self._formatUnit(unitStr)
-
-        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
-
-        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
-        self._converterToSI = self.getConverter(self._SIBaseUnit)
 
     @staticmethod
     def _cancleUnits(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
@@ -228,50 +216,59 @@ class unit():
 
         return u
 
-    def isCombinationUnit(self):
-        if len(self.upper) > 1:
-            return True
-        if self.lower:
-            return True
-        return False
+    @staticmethod
+    def _multiply(a, b):
 
-    def __str__(self, pretty=False):
-        if not pretty:
-            return self.unitStr
-        else:
-            if self.lower:
-                # a fraction is needed
-                out = rf'\frac{{'
-                for i, (up, prefix, exp) in enumerate(zip(self.upper, self.upperPrefix, self.upperExp)):
-                    if exp > 1:
-                        up = rf'{up}^{exp}'
-                    if prefix is None:
-                        prefix = ''
-                    out += rf'{prefix}{up}'
-                    if i != len(self.upper) - 1:
-                        out += rf' \cdot '
-                out += rf'}}{{'
-                for i, (low, prefix, exp) in enumerate(zip(self.lower, self.lowerPrefix, self.lowerExp)):
-                    if exp > 1:
-                        low = rf'{low}^{exp}'
-                    if prefix is None:
-                        prefix = ''
-                    out += rf'{prefix}{low}'
-                    if i != len(self.lower) - 1:
-                        out += rf' \cdot '
-                out += rf'}}'
-            else:
-                # no fraction
-                out = r''
-                for i, (up, prefix, exp) in enumerate(zip(self.upper, self.upperPrefix, self.upperExp)):
-                    if exp > 1:
-                        up = rf'{up}^{exp}'
-                    if prefix is None:
-                        prefix = ''
-                    out += rf'{prefix}{up}'
-                    if i != len(self.upper) - 1:
-                        out += rf' \cdot '
-            return out
+        aUpper, aUpperPrefix, aUpperExp, aLower, aLowerPrefix, aLowerExp = unit._getLists(a)
+        bUpper, bUpperPrefix, bUpperExp, bLower, bLowerPrefix, bLowerExp = unit._getLists(b)
+
+        upper = aUpper + bUpper
+        upperPrefix = [elem if not elem is None else '' for elem in aUpperPrefix + bUpperPrefix]
+        upperExp = aUpperExp + bUpperExp
+        lower = aLower + bLower
+        lowerPrefix = [elem if not elem is None else '' for elem in aLowerPrefix + bLowerPrefix]
+        lowerExp = aLowerExp + bLowerExp
+
+        def reduceLists(units, unitPrefixes, unitExponents):
+            # combine the prefix and the unit
+            units = [pre + u for u, pre in zip(units, unitPrefixes)]
+
+            # loop over all unique combinations of prefix and units
+            setUnits = set(units)
+            tmpUnits = [''] * len(setUnits)
+            for i, u in enumerate(setUnits):
+                indexes = [_ for _, elem in enumerate(units) if elem == u]
+                exponent = sum([unitExponents[elem] for elem in indexes])
+                tmpUnits[i] = u
+
+                # add the exponent
+                if exponent != 1 and u != '1':
+                    tmpUnits[i] += str(exponent)
+
+            # split in to lists againt
+            tmpUnits = [unit._removeExponentFromUnit(elem) for elem in tmpUnits]
+            exponents = [elem[1] for elem in tmpUnits]
+            tmpUnits = [elem[0]for elem in tmpUnits]
+            tmpUnits = [unit._removePrefixFromUnit(elem) for elem in tmpUnits]
+            prefixes = [elem[1] for elem in tmpUnits]
+            units = [elem[0]for elem in tmpUnits]
+            return units, prefixes, exponents
+
+        upper, upperPrefix, upperExp = reduceLists(upper, upperPrefix, upperExp)
+        lower, lowerPrefix, lowerExp = reduceLists(lower, lowerPrefix, lowerExp)
+
+        upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = unit._cancleUnits(
+            upper,
+            upperPrefix,
+            upperExp,
+            lower,
+            lowerPrefix,
+            lowerExp
+        )
+
+        out = unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
+
+        return out
 
     @staticmethod
     def _getLists(unitStr):
@@ -395,178 +392,7 @@ class unit():
         if aLowerPrefixSorted != bLowerPrefixSorted:
             raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
 
-    def _assertEqual(self, other):
-        self._assertEqualStatic(self.unitStr, other.unitStr)
-
-    def __add__(self, other):
-        self._assertEqual(other)
-        return deepcopy(self)
-
-    def __sub__(self, other):
-        self._assertEqual(other)
-        return deepcopy(self)
-
-    def __mul__(self, other):
-
-        upper = self.upper + other.upper
-        lower = self.lower + other.lower
-
-        upperExp = self.upperExp + other.upperExp
-        lowerExp = self.lowerExp + other.lowerExp
-
-        upperPrefix = self.upperPrefix + other.upperPrefix
-        lowerPrefix = self.lowerPrefix + other.lowerPrefix
-
-        # TODO optimize
-        # reduce the upper units and combine their exponents
-        upperReduced = []
-        upperPrefixReduced = []
-        upperExpReduced = []
-        done = False
-        while not done:
-            # get the next unit
-            up = upper[0]
-
-            # find all indexes where that unit is in the upper
-            indexes = [i for i, elem in enumerate(upper) if elem == up]
-
-            # append the unit to the reduced upper
-            upperReduced.append(up)
-
-            # initialize a new element in the reduced upper exponent and prefix
-            upperExpReduced.append(0)
-            upperPrefixReduced.append('')
-
-            # for each index with the same unit as "up", add the exponents and the prefixes
-            # the prefixes are hyphen seperated
-            for i in indexes:
-                upperExpReduced[-1] += upperExp[i]
-                if not upperPrefix[i] is None:
-                    if upperPrefixReduced[-1]:
-                        upperPrefixReduced[-1] += '-'
-                    upperPrefixReduced[-1] += upperPrefix[i]
-
-            upper = [elem for i, elem in enumerate(upper) if i not in indexes]
-            upperExp = [elem for i, elem in enumerate(upperExp) if i not in indexes]
-            upperPrefix = [elem for i, elem in enumerate(upperPrefix) if i not in indexes]
-
-            if not upper:
-                done = True
-        upper, upperPrefix, upperExp = upperReduced, upperPrefixReduced, upperExpReduced
-        upperPrefix = [elem if elem != '' else None for elem in upperPrefix]
-
-        # reduce the lower units and combine their exponents
-        lowerReduced = []
-        lowerPrefixReduced = []
-        lowerExpReduced = []
-        done = not lower
-        while not done:
-            # get the next unit
-            low = lower[0]
-
-            # find all indexes where that unit is in the lower
-            indexes = [i for i, elem in enumerate(lower) if elem == low]
-
-            # append the unit to the reduced lower
-            lowerReduced.append(low)
-
-            # initialize a new element in the reduced lower exponent and prefix
-            lowerExpReduced.append(0)
-            lowerPrefixReduced.append('')
-
-            # for each index with the same unit as "low", add the exponents and the prefixes
-            # the prefixes are hyphen seperated
-            for i in indexes:
-                lowerExpReduced[-1] += lowerExp[i]
-                if not lowerPrefix[i] is None:
-                    if lowerPrefixReduced[-1]:
-                        lowerPrefixReduced[-1] += '-'
-                    lowerPrefixReduced[-1] += lowerPrefix[i]
-
-            lower = [elem for i, elem in enumerate(lower) if i not in indexes]
-            lowerExp = [elem for i, elem in enumerate(lowerExp) if i not in indexes]
-            lowerPrefix = [elem for i, elem in enumerate(lowerPrefix) if i not in indexes]
-
-            if not lower:
-                done = True
-        lower, lowerPrefix, lowerExp = lowerReduced, lowerPrefixReduced, lowerExpReduced
-        lowerPrefix = [elem if elem != '' else None for elem in lowerPrefix]
-
-        upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = self._cancleUnits(
-            upper,
-            upperPrefix,
-            upperExp,
-            lower,
-            lowerPrefix,
-            lowerExp
-        )
-
-        out = self._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
-
-        return out
-
-    def __truediv__(self, other):
-
-        other = self._combineUpperAndLower(
-            upper=other.lower,
-            upperPrefix=other.lowerPrefix,
-            upperExp=other.lowerExp,
-            lower=other.upper,
-            lowerPrefix=other.upperPrefix,
-            lowerExp=other.upperExp
-        )
-        other = unit(other)
-
-        return self * other
-
-    def __pow__(self, power):
-
-        if power == 0:
-            return '1'
-
-        elif power > 1:
-
-            if self.unitStr == '1':
-                # self is '1'. Therefore the power does not matter
-                return self.unitStr
-
-            else:
-                # self is not '1'. Therefore all exponents are multiplied by the power
-
-                if not (isinstance(power, int) or power.is_integer()):
-                    logger.error('The power has to be an integer')
-                    raise ValueError('The power has to be an integer')
-
-                upperExp = [int(elem * power) for elem in self.upperExp]
-                lowerExp = [int(elem * power) for elem in self.lowerExp]
-
-                return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
-
-        else:
-            # the power is smaller than 1.
-            # Therefore it is necessary to determine if all exponents are divisible by the recibricol of the power
-
-            if self.unitStr == '1':
-                # self is '1'. Therefore the power does not matter
-                return self.unitStr
-            else:
-                # self is not '1'.
-                # Therefore it is necessary to determine if all exponents are divisible by the recibricol of the power
-
-                def isCloseToInteger(a, rel_tol=1e-9, abs_tol=0.0):
-                    b = np.around(a)
-                    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-
-                # Test if the exponent of all units is divisible by the power
-                for exp in self.upperExp + self.lowerExp:
-                    if not isCloseToInteger(exp * power):
-                        logger.error(f'You can not raise a variable with the unit {self.unitStr} to the power of {power}')
-                        raise ValueError(f'You can not raise a variable with the unit {self.unitStr} to the power of {power}')
-
-                upperExp = [int(elem * power) for elem in self.upperExp]
-                lowerExp = [int(elem * power) for elem in self.lowerExp]
-
-                return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
+        return True
 
     @staticmethod
     def _removePrefixFromUnit(unit):
@@ -649,6 +475,141 @@ class unit():
 
         return unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
 
+    def __init__(self, unitStr) -> None:
+        if unitStr == '':
+            unitStr = '1'
+
+        # split the unit in upper and lower
+        self.unitStr = self._formatUnit(unitStr)
+
+        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
+
+        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
+        self._converterToSI = self.getConverter(self._SIBaseUnit)
+
+    def isCombinationUnit(self):
+        if len(self.upper) > 1:
+            return True
+        if self.lower:
+            return True
+        return False
+
+    def __str__(self, pretty=False):
+        if not pretty:
+            return self.unitStr
+        else:
+            if self.lower:
+                # a fraction is needed
+                out = rf'\frac{{'
+                for i, (up, prefix, exp) in enumerate(zip(self.upper, self.upperPrefix, self.upperExp)):
+                    if exp > 1:
+                        up = rf'{up}^{exp}'
+                    if prefix is None:
+                        prefix = ''
+                    out += rf'{prefix}{up}'
+                    if i != len(self.upper) - 1:
+                        out += rf' \cdot '
+                out += rf'}}{{'
+                for i, (low, prefix, exp) in enumerate(zip(self.lower, self.lowerPrefix, self.lowerExp)):
+                    if exp > 1:
+                        low = rf'{low}^{exp}'
+                    if prefix is None:
+                        prefix = ''
+                    out += rf'{prefix}{low}'
+                    if i != len(self.lower) - 1:
+                        out += rf' \cdot '
+                out += rf'}}'
+            else:
+                # no fraction
+                out = r''
+                for i, (up, prefix, exp) in enumerate(zip(self.upper, self.upperPrefix, self.upperExp)):
+                    if exp > 1:
+                        up = rf'{up}^{exp}'
+                    if prefix is None:
+                        prefix = ''
+                    out += rf'{prefix}{up}'
+                    if i != len(self.upper) - 1:
+                        out += rf' \cdot '
+            return out
+
+    def _assertEqual(self, other):
+        if isinstance(other, unit):
+            other = other.unitStr
+        return self._assertEqualStatic(self.unitStr, other)
+
+    def __add__(self, other):
+        self._assertEqual(other)
+        return self.unitStr
+
+    def __sub__(self, other):
+        self._assertEqual(other)
+        return self.unitStr
+
+    def __mul__(self, other):
+        return unit._multiply(self.unitStr, other.unitStr)
+
+    def __truediv__(self, other):
+
+        other = self._combineUpperAndLower(
+            upper=other.lower,
+            upperPrefix=other.lowerPrefix,
+            upperExp=other.lowerExp,
+            lower=other.upper,
+            lowerPrefix=other.upperPrefix,
+            lowerExp=other.upperExp
+        )
+
+        return unit._multiply(self.unitStr, other)
+
+    def __pow__(self, power):
+
+        if power == 0:
+            return '1'
+
+        elif power > 1:
+
+            if self.unitStr == '1':
+                # self is '1'. Therefore the power does not matter
+                return self.unitStr
+
+            else:
+                # self is not '1'. Therefore all exponents are multiplied by the power
+
+                if not (isinstance(power, int) or power.is_integer()):
+                    logger.error('The power has to be an integer')
+                    raise ValueError('The power has to be an integer')
+
+                upperExp = [int(elem * power) for elem in self.upperExp]
+                lowerExp = [int(elem * power) for elem in self.lowerExp]
+
+                return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
+
+        else:
+            # the power is smaller than 1.
+            # Therefore it is necessary to determine if all exponents are divisible by the recibricol of the power
+
+            if self.unitStr == '1':
+                # self is '1'. Therefore the power does not matter
+                return self.unitStr
+            else:
+                # self is not '1'.
+                # Therefore it is necessary to determine if all exponents are divisible by the recibricol of the power
+
+                def isCloseToInteger(a, rel_tol=1e-9, abs_tol=0.0):
+                    b = np.around(a)
+                    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+                # Test if the exponent of all units is divisible by the power
+                for exp in self.upperExp + self.lowerExp:
+                    if not isCloseToInteger(exp * power):
+                        logger.error(f'You can not raise a variable with the unit {self.unitStr} to the power of {power}')
+                        raise ValueError(f'You can not raise a variable with the unit {self.unitStr} to the power of {power}')
+
+                upperExp = [int(elem * power) for elem in self.upperExp]
+                lowerExp = [int(elem * power) for elem in self.lowerExp]
+
+                return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
+
     def getConverter(self, newUnit):
         newUnit = unit._formatUnit(newUnit)
 
@@ -705,8 +666,3 @@ class unit():
 
         return out
 
-
-if __name__ == '__main__':
-    a = unit('m')
-    b = a**2
-    print(type(b))

@@ -175,12 +175,12 @@ class test(unittest.TestCase):
         C = A * B
 
         self.assertAlmostEqual(C.value, 12.3 * 745.1)
-        self.assertEqual(C.unit, 'L-m/min')
+        self.assertTrue(C._unitObject._assertEqual('L-m/min'))
         self.assertAlmostEqual(C.uncert, np.sqrt((745.1 * 2.6)**2 + (12.3 * 53.9)**2))
 
         C_vec = A_vec * B_vec
         np.testing.assert_array_equal(C_vec.value, np.array([12.3 * 745.1, 54.3 * 496.13, 91.3 * 120.54]))
-        self.assertEqual(C_vec.unit, 'L-m/min')
+        self.assertTrue(C._unitObject._assertEqual('L-m/min'))
         np.testing.assert_array_equal(
             C_vec.uncert,
             np.array([
@@ -208,7 +208,7 @@ class test(unittest.TestCase):
 
         C = A / B
         self.assertAlmostEqual(C.value, 12.3 / 745.1)
-        self.assertEqual(C.unit, 'L/min-m')
+        self.assertTrue(C._unitObject._assertEqual('L/min-m'))
         self.assertAlmostEqual(C.uncert, np.sqrt((1 / 745.1 * 2.6)**2 + (12.3 / (745.1**2) * 53.9)**2))
 
         C.convert('m3/h-mm')
@@ -218,7 +218,7 @@ class test(unittest.TestCase):
 
         C_vec = A_vec / B_vec
         np.testing.assert_array_equal(C_vec.value, np.array([12.3 / 745.1, 54.3 / 496.13, 91.3 / 120.54]))
-        self.assertEqual(C_vec.unit, 'L/min-m')
+        self.assertTrue(C_vec._unitObject._assertEqual('L/min-m'))
         np.testing.assert_array_equal(
             C_vec.uncert,
             np.array([
@@ -611,7 +611,7 @@ class test(unittest.TestCase):
 
         A *= B
         self.assertAlmostEqual(A.value, 12.3 * 745.1)
-        self.assertEqual(A.unit, 'L-m/min')
+        self.assertTrue(A._unitObject._assertEqual('L-m/min'))
         self.assertAlmostEqual(A.uncert, np.sqrt((745.1 * 2.6)**2 + (12.3 * 53.9)**2))
 
         A = variable(12.3, 'L/min', uncert=2.6)
@@ -632,7 +632,7 @@ class test(unittest.TestCase):
 
         A_vec *= B_vec
         np.testing.assert_array_almost_equal(A_vec.value, np.array([12.3 * 745.1, 54.3 * 496.13, 91.3 * 120.54]))
-        self.assertEqual(A_vec.unit, 'L-m/min')
+        self.assertTrue(A_vec._unitObject._assertEqual('L-m/min'))
         np.testing.assert_array_almost_equal(
             A_vec.uncert,
             np.array([
@@ -660,7 +660,7 @@ class test(unittest.TestCase):
 
         A /= B
         self.assertAlmostEqual(A.value, 12.3 / 745.1)
-        self.assertEqual(A.unit, 'L/min-m')
+        self.assertTrue(A._unitObject._assertEqual('L/min-m'))
         self.assertAlmostEqual(A.uncert, np.sqrt((1 / 745.1 * 2.6)**2 + (12.3 / (745.1**2) * 53.9)**2))
 
         A = variable(12.3, 'L/min', uncert=2.6)
@@ -681,7 +681,7 @@ class test(unittest.TestCase):
 
         A_vec /= B_vec
         np.testing.assert_array_almost_equal(A_vec.value, np.array([12.3 / 745.1, 54.3 / 496.13, 91.3 / 120.54]))
-        self.assertEqual(A_vec.unit, 'L/min-m')
+        self.assertTrue(A_vec._unitObject._assertEqual('L/min-m'))
         np.testing.assert_array_almost_equal(
             A_vec.uncert,
             np.array([
@@ -1163,7 +1163,7 @@ class test(unittest.TestCase):
         b._addCovariance(a, [23])
         c = a * b
         self.assertEqual(c.value, 123 * 93)
-        self.assertEqual(c.unit, 'L-Pa/min')
+        self.assertTrue(c._unitObject._assertEqual('L-Pa/min'))
         self.assertEqual(c.uncert, np.sqrt((123 * 1.2)**2 + (93 * 9.7)**2 + 2 * 93 * 123 * 23))
 
         a = variable(123, 'L/min', 9.7)
@@ -1173,13 +1173,14 @@ class test(unittest.TestCase):
         a.convert('m3/s')
         c = a * b
         self.assertEqual(c.value, 123 * 93 / 1000 / 60)
-        self.assertEqual(c.unit, 'm3-Pa/s')
+        self.assertTrue(c._unitObject._assertEqual('m3-Pa/s'))
         self.assertEqual(c.uncert, np.sqrt((123 / 1000 / 60 * 1.2)**2 + (93 * 9.7 / 1000 / 60)**2 + 2 * 93 * 123 / 1000 / 60 * 23))
 
-    def test(self):
-        a = variable(1, 'J')
-        b = variable(1, 'W')
-        c = a / b
+    def testConvert(self):
+        a = variable(1, 'km')
+        b = variable(1, 'm')
+        c = a * b
+        c.convert('mm2')
 
 
 if __name__ == '__main__':

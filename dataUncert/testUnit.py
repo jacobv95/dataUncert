@@ -29,7 +29,7 @@ class test(unittest.TestCase):
             L-kg-m/min-L
             kg-m/min    """
         c = a * b
-        self.assertEqual(str(c), 'kg-m/min')
+        self.assertTrue(unit(c)._assertEqual('kg-m/min'))
 
         a = unit('L/min')
         b = unit('L/min')
@@ -54,7 +54,8 @@ class test(unittest.TestCase):
             L/min * L/kg-m
             L2 / min-kg-m """
         c = a / b
-        self.assertEqual(str(c), 'L2/min-kg-m')
+
+        self.assertTrue(unit('L2/min-kg-m')._assertEqual(unit(c)))
 
     def testAdd(self):
         a = unit('L/min')

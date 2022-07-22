@@ -575,5 +575,3 @@ def np_mean_for_variable(x, *args, **kwargs):
     return variable(val, x.unit, unc)
 
 
-if __name__ == "__main__":
-    a = variable(1, '1')
