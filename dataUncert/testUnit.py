@@ -111,6 +111,7 @@ class test(unittest.TestCase):
         a = unit('A')
         b = unit('V')
         c = a * b
+        c = unit(c)
         converter = c.getConverter('W')
         self.assertAlmostEqual(converter.convert(1, useOffset=True), 1)
 

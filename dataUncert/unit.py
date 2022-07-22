@@ -148,7 +148,6 @@ for key, d in knownUnitsDict.items():
     for item, _ in d.items():
         if item not in knownUnits:
             knownUnits[item] = [key, knownUnitsDict[key][item]]
-
         else:
             raise Warning(f'The unit {item} known in more than one unit system')
 
@@ -160,25 +159,11 @@ class unit():
 
         # split the unit in upper and lower
         self.unitStr = self._formatUnit(unitStr)
-        self.upper, self.lower = self._splitCompositeUnit(self.unitStr)
 
-        # split the units in unit and exponent
-        self.upperExp = []
-        self.lowerExp = []
-        for i, up in enumerate(self.upper):
-            up, exp = self._removeExponentFromUnit(up)
-            self.upper[i] = up
-            self.upperExp.append(exp)
-        for i, low in enumerate(self.lower):
-            low, exp = self._removeExponentFromUnit(low)
-            self.lower[i] = low
-            self.lowerExp.append(exp)
+        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
 
-        # initialize the prefixes. These are determined in the function _isUnitKnwon
-        self.upperPrefix = [None] * len(self.upper)
-        self.lowerPrefix = [None] * len(self.lower)
-
-        self._isUnitKnown()
+        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
+        self._converterToSI = self.getConverter(self._SIBaseUnit)
 
     @staticmethod
     def _cancleUnits(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
@@ -241,7 +226,7 @@ class unit():
             lower = '-'.join(lower)
             u = u + '/' + lower
 
-        return unit(u)
+        return u
 
     def isCombinationUnit(self):
         if len(self.upper) > 1:
@@ -288,52 +273,34 @@ class unit():
                         out += rf' \cdot '
             return out
 
-    def _isUnitKnown(self):
-        # Determine if the unit is known within the unitsystem
+    @staticmethod
+    def _getLists(unitStr):
+        upper, lower = unit._splitCompositeUnit(unitStr)
 
-        upperBools = [True] * len(self.upper) + [False] * len(self.lower)
-        units = self.upper + self.lower
-        for i, (un, upperBool) in enumerate(zip(units, upperBools)):
-
-            if not un in knownUnits:
-                # The unit was not found. This must be because the unit has a prefix
-                prefix = un[0:1]
-                un = un[1:]
-
-                if prefix not in knownPrefixes:
-                    logger.error(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
-                    raise ValueError(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
-
-                if un in baseUnit:
-                    logger.error(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
-                    raise ValueError(
-                        f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
-
-                # look for the unit without the prefix
-                if not un in knownUnits:
-                    logger.error(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. However the unit ({un}) was not found')
-                    raise ValueError(f'The unit ({prefix}{un}) was not found. Therefore it was interpreted as a prefix and a unit. However the unit ({un}) was not found')
-
-                if upperBool:
-                    self.upperPrefix[i] = prefix
-                    self.upper[i] = un
-                else:
-                    index = i - len(self.upper)
-                    self.lowerPrefix[index] = prefix
-                    self.lower[index] = un
+        def splitUnitExponentAndPrefix(unitList):
+            tmp = [unit._removeExponentFromUnit(elem) for elem in unitList]
+            exponent = [elem[1] for elem in tmp]
+            tmp = [elem[0]for elem in tmp]
+            tmp = [unit._removePrefixFromUnit(elem) for elem in tmp]
+            u = [elem[0] for elem in tmp]
+            prefix = [elem[1] for elem in tmp]
+            return u, prefix, exponent
+        upper, upperPrefix, upperExp = splitUnitExponentAndPrefix(upper)
+        lower, lowerPrefix, lowerExp = splitUnitExponentAndPrefix(lower)
+        return upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp
 
     @ staticmethod
-    def _formatUnit(unit):
+    def _formatUnit(unitStr):
         # Removing any illegal symbols
         special_characters = """!@#$%^&*()+?_=.,<>\\"""
-        if any(s in unit for s in special_characters):
+        if any(s in unitStr for s in special_characters):
             logger.error('The unit can only contain slashes (/), hyphens (-)')
             raise ValueError('The unit can only contain slashes (/), hyphens (-)')
 
         # Removing any spaces
-        unit = unit.replace(' ', '')
+        unitStr = unitStr.replace(' ', '')
 
-        return unit
+        return unitStr
 
     @ staticmethod
     def _splitCompositeUnit(compositeUnit):
@@ -386,43 +353,50 @@ class unit():
 
         return u, exponent
 
+    @staticmethod
+    def _assertEqualStatic(a, b):
+
+        aUpper, aUpperPrefix, aUpperExp, aLower, aLowerPrefix, aLowerExp = unit._getLists(a)
+        bUpper, bUpperPrefix, bUpperExp, bLower, bLowerPrefix, bLowerExp = unit._getLists(b)
+
+        if bool(aLower) != bool(bLower):
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+
+        aUpperIndexes = np.argsort(aUpper)
+        aLowerIndexes = np.argsort(aLower)
+        bUpperIndexes = np.argsort(bUpper)
+        bLowerIndexes = np.argsort(bLower)
+
+        aUpperSorted = list(np.sort(aUpper))
+        aLowerSorted = list(np.sort(aLower))
+        bUpperSorted = list(np.sort(bUpper))
+        bLowerSorted = list(np.sort(bLower))
+
+        aUpperExpSorted = [aUpperExp[elem] for elem in aUpperIndexes]
+        aLowerExpSorted = [aLowerExp[elem] for elem in aLowerIndexes]
+        bUpperExpSorted = [bUpperExp[elem] for elem in bUpperIndexes]
+        bLowerExpSorted = [bLowerExp[elem] for elem in bLowerIndexes]
+
+        aUpperPrefixSorted = [aUpperPrefix[elem] for elem in aUpperIndexes]
+        aLowerPrefixSorted = [aLowerPrefix[elem] for elem in aLowerIndexes]
+        bUpperPrefixSorted = [bUpperPrefix[elem] for elem in bUpperIndexes]
+        bLowerPrefixSorted = [bLowerPrefix[elem] for elem in bLowerIndexes]
+
+        if aUpperSorted != bUpperSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+        if aLowerSorted != bLowerSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+        if aUpperExpSorted != bUpperExpSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+        if aLowerExpSorted != bLowerExpSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+        if aUpperPrefixSorted != bUpperPrefixSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+        if aLowerPrefixSorted != bLowerPrefixSorted:
+            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+
     def _assertEqual(self, other):
-
-        if bool(self.lower) != bool(other.lower):
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-
-        selfUpperIndexes = np.argsort(self.upper)
-        selfLowerIndexes = np.argsort(self.lower)
-        otherUpperIndexes = np.argsort(other.upper)
-        otherLowerIndexes = np.argsort(other.lower)
-
-        selfUpperSorted = list(np.sort(self.upper))
-        selfLowerSorted = list(np.sort(self.lower))
-        otherUpperSorted = list(np.sort(other.upper))
-        otherLowerSorted = list(np.sort(other.lower))
-
-        selfUpperExpSorted = [self.upperExp[elem] for elem in selfUpperIndexes]
-        selfLowerExpSorted = [self.lowerExp[elem] for elem in selfLowerIndexes]
-        otherUpperExpSorted = [other.upperExp[elem] for elem in otherUpperIndexes]
-        otherLowerExpSorted = [other.lowerExp[elem] for elem in otherLowerIndexes]
-
-        selfUpperPrefixSorted = [self.upperPrefix[elem] for elem in selfUpperIndexes]
-        selfLowerPrefixSorted = [self.lowerPrefix[elem] for elem in selfLowerIndexes]
-        otherUpperPrefixSorted = [other.upperPrefix[elem] for elem in otherUpperIndexes]
-        otherLowerPrefixSorted = [other.lowerPrefix[elem] for elem in otherLowerIndexes]
-
-        if selfUpperSorted != otherUpperSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-        if selfLowerSorted != otherLowerSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-        if selfUpperExpSorted != otherUpperExpSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-        if selfLowerExpSorted != otherLowerExpSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-        if selfUpperPrefixSorted != otherUpperPrefixSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
-        if selfLowerPrefixSorted != otherLowerPrefixSorted:
-            raise ValueError(f'You tried to add the unit {self.unitStr} to the unit {other.unitStr}. These do not match')
+        self._assertEqualStatic(self.unitStr, other.unitStr)
 
     def __add__(self, other):
         self._assertEqual(other)
@@ -443,6 +417,7 @@ class unit():
         upperPrefix = self.upperPrefix + other.upperPrefix
         lowerPrefix = self.lowerPrefix + other.lowerPrefix
 
+        # TODO optimize
         # reduce the upper units and combine their exponents
         upperReduced = []
         upperPrefixReduced = []
@@ -517,14 +492,13 @@ class unit():
         lower, lowerPrefix, lowerExp = lowerReduced, lowerPrefixReduced, lowerExpReduced
         lowerPrefix = [elem if elem != '' else None for elem in lowerPrefix]
 
-        out = self._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
         upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = self._cancleUnits(
-            out.upper,
-            out.upperPrefix,
-            out.upperExp,
-            out.lower,
-            out.lowerPrefix,
-            out.lowerExp
+            upper,
+            upperPrefix,
+            upperExp,
+            lower,
+            lowerPrefix,
+            lowerExp
         )
 
         out = self._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
@@ -541,19 +515,20 @@ class unit():
             lowerPrefix=other.upperPrefix,
             lowerExp=other.upperExp
         )
+        other = unit(other)
 
         return self * other
 
     def __pow__(self, power):
 
         if power == 0:
-            return unit('1')
+            return '1'
 
         elif power > 1:
 
             if self.unitStr == '1':
                 # self is '1'. Therefore the power does not matter
-                return unit('1')
+                return self.unitStr
 
             else:
                 # self is not '1'. Therefore all exponents are multiplied by the power
@@ -573,7 +548,7 @@ class unit():
 
             if self.unitStr == '1':
                 # self is '1'. Therefore the power does not matter
-                return unit('1')
+                return self.unitStr
             else:
                 # self is not '1'.
                 # Therefore it is necessary to determine if all exponents are divisible by the recibricol of the power
@@ -593,23 +568,97 @@ class unit():
 
                 return self._combineUpperAndLower(self.upper, self.upperPrefix, upperExp, self.lower, self.lowerPrefix, lowerExp)
 
-    def getSIBaseUnit(self):
-        upper = [unit(knownUnits[elem][0]) for elem in self.upper]
-        lower = [unit(knownUnits[elem][0]) for elem in self.lower]
+    @staticmethod
+    def _removePrefixFromUnit(unit):
 
-        SIBase = unit('')
-        for up, upExp in zip(upper, self.upperExp):
-            SIBase *= up ** upExp
-        for lower, lowExp in zip(lower, self.lowerExp):
-            SIBase /= lower ** lowExp
-        return SIBase
+        if unit in knownUnits:
+            return unit, None
+
+        # The unit was not found. This must be because the unit has a prefix
+        prefix = unit[0:1]
+        unit = unit[1:]
+
+        if prefix not in knownPrefixes:
+            logger.error(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
+            raise ValueError(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the prefix ({prefix}) was not found')
+
+        if unit in baseUnit:
+            logger.error(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
+            raise ValueError(
+                f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. Both the prefix and the unit were found. However, the unit "1" cannot have a prefix')
+
+        # look for the unit without the prefix
+        if not unit in knownUnits:
+            logger.error(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the unit ({unit}) was not found')
+            raise ValueError(f'The unit ({prefix}{unit}) was not found. Therefore it was interpreted as a prefix and a unit. However the unit ({unit}) was not found')
+        return unit, prefix
+
+    @staticmethod
+    def _getSIBaseUnit(upper, upperExp, lower, lowerExp):
+
+        def addUnitsMultipleTimes(units, unitExps):
+            out = []
+            for unit, unitExp in zip(units, unitExps):
+                for _ in range(unitExp):
+                    out.append(unit)
+            return out
+
+        upper = addUnitsMultipleTimes(upper, upperExp)
+        lower = addUnitsMultipleTimes(lower, lowerExp)
+
+        # remove the prefix - this is just a scaling so this does not change the SI base unit
+        upper = [unit._removePrefixFromUnit(elem)[0] for elem in upper]
+        lower = [unit._removePrefixFromUnit(elem)[0] for elem in lower]
+
+        # return the splitted version of the base unit
+        upper = [unit._splitCompositeUnit(knownUnits[elem][0]) for elem in upper]
+        lower = [unit._splitCompositeUnit(knownUnits[elem][0]) for elem in lower]
+        # combine the upper and lower
+        tmpUpper = [elem[0] for elem in upper] + [elem[1] for elem in lower]
+        tmpLower = [elem[1] for elem in upper] + [elem[0] for elem in lower]
+        upper = [elem for L in tmpUpper for elem in L]
+        lower = [elem for L in tmpLower for elem in L]
+
+        # remove the exponents
+        tmpUpper = [unit._removeExponentFromUnit(elem) for elem in upper]
+        tmpLower = [unit._removeExponentFromUnit(elem) for elem in lower]
+        upper = [elem[0] for elem in tmpUpper]
+        tmpUpperExp = [elem[1]for elem in tmpUpper]
+        lower = [elem[0] for elem in tmpLower]
+        tmpLowerExp = [elem[1]for elem in tmpLower]
+
+        upperSet = list(set(upper))
+        lowerSet = list(set(lower))
+        lenUpperSet = len(upperSet)
+        lenLowerSet = len(lowerSet)
+        upperExp = [0] * lenUpperSet
+        lowerExp = [0] * lenLowerSet
+        upperPrefix = [None] * lenUpperSet
+        lowerPrefix = [None] * lenLowerSet
+        for i, u in enumerate(upperSet):
+            indexes = [_ for _, elem in enumerate(upper) if elem == u]
+            upperExp[i] = sum([tmpUpperExp[elem] for elem in indexes])
+        for i, l in enumerate(lowerSet):
+            indexes = [_ for _, elem in enumerate(lower) if elem == l]
+            lowerExp[i] = sum([tmpLowerExp[elem] for elem in indexes])
+        upper, lower = upperSet, lowerSet
+
+        upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = unit._cancleUnits(
+            upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp
+        )
+
+        return unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
 
     def getConverter(self, newUnit):
+        newUnit = unit._formatUnit(newUnit)
 
-        newUnit = unit(newUnit)
+        # get the upper, upperExp, lower and lowerExp of the newUnit without creating a unit
+        otherUpper, otherUpperPrefix, otherUpperExp, otherLower, otherLowerPrefix, otherLowerExp = self._getLists(newUnit)
 
+        # determine if the SI bases are identical
+        otherSIBase = self._getSIBaseUnit(otherUpper, otherUpperExp, otherLower, otherLowerExp)
         try:
-            self.getSIBaseUnit()._assertEqual(newUnit.getSIBaseUnit())
+            unit._assertEqualStatic(self._SIBaseUnit, otherSIBase)
         except ValueError:
             raise ValueError(f'You tried to convert from {self} to {newUnit}. But these do not have the same base units')
 
@@ -635,14 +684,14 @@ class unit():
                     out /= conv
 
         # get all conversions from the upper and lower units in the new unit
-        upperConversions = [knownUnits[elem][1] for elem in newUnit.upper]
-        lowerConversions = [knownUnits[elem][1] for elem in newUnit.lower]
+        upperConversions = [knownUnits[elem][1] for elem in otherUpper]
+        lowerConversions = [knownUnits[elem][1] for elem in otherLower]
 
         # modify the scale and offset based on the conversions
         conversions = upperConversions + lowerConversions
         conversionBool = [True] * len(upperConversions) + [False] * len(lowerConversions)
-        prefixes = newUnit.upperPrefix + newUnit.lowerPrefix
-        exponents = newUnit.upperExp + newUnit.lowerExp
+        prefixes = otherUpperPrefix + otherLowerPrefix
+        exponents = otherUpperExp + otherLowerExp
         for conv, prefix, exp, upperBool in zip(conversions, prefixes, exponents, conversionBool):
             if not prefix is None:
                 conv *= knownPrefixes[prefix]
@@ -655,3 +704,9 @@ class unit():
                     out *= conv
 
         return out
+
+
+if __name__ == '__main__':
+    a = unit('m')
+    b = a**2
+    print(type(b))

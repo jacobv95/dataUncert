@@ -56,7 +56,7 @@ class variable():
         self.covariance = {}
 
     def _getConverterToSI(self):
-        self._converterToSI = self._unitObject.getConverter(str(self._unitObject.getSIBaseUnit()))
+        self._converterToSI = self._unitObject._converterToSI
 
     @property
     def unit(self):
@@ -441,7 +441,7 @@ class variable():
         return self**(1 / 2)
 
     def sin(self):
-        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+        if str(self._unitObject._SIBaseUnit) != 'rad':
             logger.error('You can only take sin of an angle')
             raise ValueError('You can only take sin of an angle')
 
@@ -462,7 +462,7 @@ class variable():
         return var
 
     def cos(self):
-        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+        if str(self._unitObject._SIBaseUnit) != 'rad':
             logger.error('You can only take cos of an angle')
             raise ValueError('You can only take cos of an angle')
 
@@ -483,7 +483,7 @@ class variable():
         return var
 
     def tan(self):
-        if str(self._unitObject.getSIBaseUnit()) != 'rad':
+        if str(self._unitObject._SIBaseUnit) != 'rad':
             logger.error('You can only take tan of an angle')
             raise ValueError('You can only take tan of an angle')
 

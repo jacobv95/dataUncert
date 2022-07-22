@@ -4,6 +4,7 @@ import numpy as np
 import scipy.odr as odr
 import string
 from dataUncert.variable import variable
+from dataUncert.unit import unit
 
 
 class _fit():
@@ -344,7 +345,7 @@ class pol_fit(_fit):
             if self.terms[i]:
                 value = self.popt[index]
                 uncert = self.uPopt[index]
-                u = self.yUnit / (self.xUnit ** (n - i))
+                u = self.yUnit / (unit(self.xUnit ** (n - i)))
                 var = variable(value, u, uncert)
                 popt.append(var)
                 index += 1
