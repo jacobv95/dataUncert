@@ -1,4 +1,7 @@
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+
 
 class _unitConversion():
 
@@ -51,7 +54,7 @@ class _unitConversion():
 
 baseUnit = {
     '1': _unitConversion(1, 0),
-    "": _unitConversion(1, 0)
+    '': _unitConversion(1, 0)
 }
 
 force = {
@@ -148,8 +151,40 @@ for key, d in knownUnitsDict.items():
             raise Warning(f'The unit {item} known in more than one unit system')
 
 # determine the known characters within the unit system
-knownCharacters = ''.join(list(knownUnits.keys()))
-knownCharacters += ''.join(list(knownPrefixes.keys()))
+knownCharacters = list(knownUnits.keys()) + list(knownPrefixes.keys())
+knownCharacters = ''.join(knownCharacters)
 knownCharacters += '-/'
 knownCharacters += '0123456789'
 knownCharacters = ''.join(list(set(knownCharacters)))
+
+# check if all unit and prefix combinations can be distiguished
+unitPrefixCombinations = []
+for u in knownUnits:
+    unitPrefixCombinations += [u]
+    if u not in baseUnit:
+        unitPrefixCombinations += [p + u for p in knownPrefixes]
+
+for elem in unitPrefixCombinations:
+    count = sum([1 if u == elem else 0 for u in unitPrefixCombinations])
+    if count > 1:
+        prefix = elem[0:1]
+        unit = elem[1:]
+
+        unitType1 = ''
+        for key, item in knownUnitsDict.items():
+            if elem in item:
+                unitType1 = [key for key, a in locals().items() if a == item][0]
+        if unitType1 == '':
+            logger.error(f'The unit {elem} was not found.')
+            raise ValueError(f'The unit {elem} was not found.')
+
+        unitType2 = ''
+        for key, item in knownUnitsDict.items():
+            if unit in item:
+                unitType2 = [key for key, a in locals().items() if a == item][0]
+        if unitType2 == '':
+            logger.error(f'The unit {unit} was not found.')
+            raise ValueError(f'The unit {unit} was not found.')
+
+        logger.error(f'The unit {elem} can be interpreted as a {unitType1} or a {unitType2} with the prefix {prefix}. The cannot be distiguished.')
+        raise ValueError(f'The unit {elem} can be interpreted as a {unitType1} or a {unitType2} with the prefix {prefix}. The cannot be distiguished.')
