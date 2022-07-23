@@ -126,18 +126,13 @@ class _readData():
             # remove symbols and replace with _
             head = re.sub(r'[^\w]', '_', head.lower())
 
-            # determine places with repeated "_"
-            indexes_to_remove = []
-            for i in range(len(head) - 1):
-                if head[i] == "_":
-                    if head[i + 1] == "_":
-                        indexes_to_remove.append(i)
-
-            # remove the indexes found in the previous step
-            head = [char for char in head]
-            for i in reversed(indexes_to_remove):
-                head.pop(i)
-            head = "".join(head)
+            # remove multiple consequtive _
+            done = False
+            a = head
+            while not done:
+                b = a.replace('__', '_')
+                if a == b:
+                    done = True
 
             # add "_" to the begining of the name if the first letter is a digit
             if head[0].isnumeric():
@@ -147,6 +142,7 @@ class _readData():
             if head[-1] == "_" and len(head) != 1:
                 head = head[0:-1]
 
+            # add a number to the end of the unit if the unit exists
             i, imax, done = 0, 100, False
             while not done and i <= imax:
                 if i > 0:
@@ -157,34 +153,6 @@ class _readData():
                     out.append(h)
                     done = True
 
-        return out
-
-    def formatUnits(self, units):
-        out = []
-        for unit in units:
-            if unit is None:
-                unit = ''
-            if len(unit) > 0:
-                # remove symbols and replace with _
-                allowedCharacters = []
-                allowedCharacters += list(string.ascii_letters)
-                allowedCharacters += [str(num) for num in range(10)]
-                allowedCharacters += ['/', '-']
-                unit = list(unit)
-                for i, char in enumerate(unit):
-                    if char not in allowedCharacters:
-                        unit.pop(i)
-                unit = ''.join(unit)
-
-                # remove "_" if the last letter is "_"
-                if unit[-1] == "_" and len(unit) != 1:
-                    unit = unit[0:-1]
-
-                # remove "_" if the first letter is "_"
-                if unit[0] == "_":
-                    unit = unit[1:]
-
-            out.append(unit)
         return out
 
     def readData(self):
@@ -198,7 +166,6 @@ class _readData():
             headers = self.readRow(sheet, 0)[0:self.nCols]
             headers = self.formatHeaders(headers)
             units = self.readRow(sheet, 1)[0:self.nCols]
-            units = self.formatUnits(units)
 
             # determine the number of datapoints
             nDataPoints = []

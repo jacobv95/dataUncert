@@ -140,7 +140,7 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             a = unit('m!/s')
-        self.assertEqual('The unit can only contain slashes (/), hyphens (-)', str(context.exception))
+        self.assertEqual('The character ! is not used within the unitsystem', str(context.exception))
 
         with self.assertRaises(Exception) as context:
             a = unit('m/s/bar')
