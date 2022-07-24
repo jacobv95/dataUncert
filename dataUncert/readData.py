@@ -19,24 +19,26 @@ class _readData():
 
     def __init__(self, xlFile, dataRange, uncertRange=None) -> None:
 
-        if not '-' in dataRange:
-            logger.error('The data range has to include a hyphen (-)')
-            raise ValueError('The data range has to include a hyphen (-)')
-        index = dataRange.find('-')
-        dataStartCol = dataRange[0:index]
-        dataEndCol = dataRange[index + 1:]
+        if '-' in dataRange:
+            index = dataRange.find('-')
+            dataStartCol = dataRange[0:index]
+            dataEndCol = dataRange[index + 1:]
+        else:
+            dataStartCol = dataRange
+            dataEndCol = dataStartCol
 
         if '-' in dataStartCol or '-' in dataEndCol:
             logger.error('The data range can only include a singly hyphen (-)')
             raise ValueError('The data range can only include a singly hyphen (-)')
 
         if not uncertRange is None:
-            if not '-' in uncertRange:
-                logger.error('The uncertanty range has to include a hyphen (-)')
-                raise ValueError('The uncertanty range has to include a hyphen (-)')
-            index = uncertRange.find('-')
-            uncertStartCol = uncertRange[0:index]
-            uncertEndCol = uncertRange[index + 1:]
+            if '-' in uncertRange:
+                index = uncertRange.find('-')
+                uncertStartCol = uncertRange[0:index]
+                uncertEndCol = uncertRange[index + 1:]
+            else:
+                uncertStartCol = uncertRange
+                uncertEndCol = uncertStartCol
 
             if '-' in uncertStartCol or '-' in uncertEndCol:
                 logger.error('The data range can only include a singly hyphen (-)')
