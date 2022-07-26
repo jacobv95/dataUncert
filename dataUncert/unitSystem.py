@@ -81,7 +81,9 @@ pressure = {
 temperature = {
     'K': _unitConversion(1, 0),
     'C': _unitConversion(1, 273.15),
-    'F': _unitConversion(5 / 9, 273.15 - 32 * 5 / 9)
+    '°C': _unitConversion(1, 273.15),
+    'F': _unitConversion(5 / 9, 273.15 - 32 * 5 / 9),
+    '°F': _unitConversion(5 / 9, 273.15 - 32 * 5 / 9)
 }
 
 time = {
@@ -97,7 +99,9 @@ volume = {
 }
 
 length = {
-    'm': _unitConversion(1, 0)
+    'm': _unitConversion(1, 0),
+    'Å': _unitConversion(1e-10, 0),
+    'ly': _unitConversion(9460730472580800, 0)
 }
 
 angle = {
@@ -135,10 +139,18 @@ knownUnitsDict = {
 }
 
 knownPrefixes = {
-    'µ': 1e-6,
-    'm': 1e-3,
+    'T': 1e12,
+    'G': 1e9,
+    'M': 1e6,
     'k': 1e3,
-    'M': 1e6
+    'h': 1e2,
+    # 'da': 1e1, # TODO 'da' wont work, as the prefix is pulled from a unit as the first character
+    'd': 1e-1,
+    'c': 1e-2,
+    'm': 1e-3,
+    'µ': 1e-6,
+    'n': 1e-9,
+    'p': 1e-12
 }
 
 

@@ -31,20 +31,34 @@ The following units are known:
  - Energy: J
  - power: W
  - pressure: Pa, bar
- - Temperature: K, C, F
+ - Temperature: K, C, F, °C, °F (ASCII 0176)
  - time: s, min, h, yr
  - volume: m3, L
- - length: m
+ - length: m, ly, Å
  - current: A
  - Voltage: V
- - Angles: rad, °
+ - Angles: rad, ° (ASCII 0176)
 
 
 The following prefixes are known:
- - µ: 1e-6 (ASCII 230)
- - m: 1e-3
- - k: 1e3
+ - T: 1e12
+ - G: 1e9
  - M: 1e6
+ - k: 1e3
+ - h: 1e2
+ - d: 1e-1
+ - c: 1e-2
+ - m: 1e-3
+ - µ: 1e-6 (ASCII 230)
+ - n: 1e-9
+ - p: 1e-12
+
+## exponents
+The exponent will always apply to the unit AND the prefix. The unit 'mm3' is interpreted as "cubic millimeters" and not "milli cubicmeters". 
+
+Furhtermore, 1 kilometer multiplied with 1 meter returns 1 kilometer-meter. This is beacuse there is not prefix, x, in the known prefixes, such that 
+<img src="https://render.githubusercontent.com/render/math?math=\left(xm\right)^2 \quad \rightarrow \quad x^2 = 1000 \quad \rightarrow \quad x = 31.62">. However, the result, 1 kilometer-meter, can be converted in to square meters using the convert method.
+
 
 ### examples
  - milli Liters per minute:               'mL/min'
