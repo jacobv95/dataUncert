@@ -2,6 +2,7 @@
 setup.cfg
 setup.py
 dataUncert\__init__.py
+dataUncert\constant.py
 dataUncert\fit.py
 dataUncert\profileDataUncert.py
 dataUncert\readData.py

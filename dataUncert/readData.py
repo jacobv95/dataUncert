@@ -364,8 +364,8 @@ class _Sheet():
         # append the data
         for i in range(len(self.measurements)):
             meas_i = measB[i]
-            self.measurements[i].value = np.append(self.measurements[i].value, meas_i.value)
-            self.measurements[i].uncert = np.append(self.measurements[i].uncert, meas_i.uncert)
+            self.measurements[i]._value = np.append(self.measurements[i].value, meas_i.value)
+            self.measurements[i]._uncert = np.append(self.measurements[i].uncert, meas_i.uncert)
             if len(self.measurements[i].covariance) == 0:
                 if len(meas_i.covariance) == 0:
                     # do nothing

@@ -20,22 +20,22 @@ class variable():
         # parse the value and the uncertaty
         try:
             # the value is a single number
-            self.value = float(value)
+            self._value = float(value)
 
             if uncert is None:
-                self.uncert = 0
+                self._uncert = 0
             else:
                 try:
                     # the uncertanty is a number
-                    self.uncert = float(uncert)
+                    self._uncert = float(uncert)
                 except TypeError:
                     logger.error(f'The value is a number but the uncertanty is a {type(uncert)}')
                     raise ValueError(f'The value is a number but the uncertanty is a {type(uncert)}')
         except TypeError:
             # the value contains multiple elements
             if uncert is None:
-                self.value = np.array(value, dtype=float)
-                self.uncert = np.zeros(len(value), dtype=float)
+                self._value = np.array(value, dtype=float)
+                self._uncert = np.zeros(len(value), dtype=float)
             else:
                 try:
                     float(uncert)
@@ -45,8 +45,8 @@ class variable():
                     if len(value) != len(uncert):
                         logger.error('The number of elements in the value is not equal to the number of elements in the uncertanty')
                         raise ValueError('The number of elements in the value is not equal to the number of elements in the uncertanty')
-                    self.value = np.array(value, dtype=float)
-                    self.uncert = np.array(uncert, dtype=float)
+                    self._value = np.array(value, dtype=float)
+                    self._uncert = np.array(uncert, dtype=float)
 
         # value and unit in SI. This is used when determining the gradient in the uncertanty expression
         self._getConverterToSI()
@@ -59,30 +59,38 @@ class variable():
         self._converterToSI = self._unitObject._converterToSI
 
     @property
+    def value(self):
+        return self._value
+
+    @property
     def unit(self):
         return str(self._unitObject)
 
+    @property
+    def uncert(self):
+        return self._uncert
+
     def convert(self, newUnit):
         oldUnit = self._unitObject
-        oldValue = self.value
-        oldUncert = self.uncert
+        oldValue = self._value
+        oldUncert = self._uncert
 
         converter = self._unitObject.getConverter(newUnit)
-        self.value = converter.convert(self.value, useOffset=not self._unitObject.isCombinationUnit())
-        self.uncert = converter.convert(self.uncert, useOffset=False)
+        self._value = converter.convert(self._value, useOffset=not self._unitObject.isCombinationUnit())
+        self._uncert = converter.convert(self._uncert, useOffset=False)
         self._unitObject = unit(newUnit)
 
         # update the converter to SI
         self._getConverterToSI()
 
-        logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self.value} +/- {self.uncert} [{self.unit}]')
+        logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self._value} +/- {self._uncert} [{self.unit}]')
 
     def __getitem__(self, items):
-        if isinstance(self.value, np.ndarray):
+        if isinstance(self._value, np.ndarray):
             if isinstance(items, int):
                 items = [items]
-            vals = [self.value[i] for i in items]
-            uncert = [self.uncert[i]for i in items]
+            vals = [self._value[i] for i in items]
+            uncert = [self._uncert[i]for i in items]
             return variable(vals, self.unit, uncert)
         else:
             if items == 0:
@@ -142,11 +150,11 @@ class variable():
         else:
             unitStr = rf'{squareBracketLeft}{unitStr}{squareBracketRight}'
 
-        if isinstance(self.value, float) or isinstance(self.value, int):
+        if isinstance(self._value, float) or isinstance(self._value, int):
             # print a single value
-            value = self.value
-            if self.uncert != 0:
-                uncert = self.uncert
+            value = self._value
+            if self._uncert != 0:
+                uncert = self._uncert
 
             value, uncert = self.printUncertanty(value, uncert)
             if uncert is None:
@@ -158,12 +166,12 @@ class variable():
             # print array of values
             valStr = []
             uncStr = []
-            for v, u in zip(self.value, self.uncert):
+            for v, u in zip(self._value, self._uncert):
                 v, u = self.printUncertanty(v, u)
                 valStr.append(v)
                 uncStr.append(u)
 
-            if all(self.uncert == 0) or all(elem is None for elem in self.uncert):
+            if all(self._uncert == 0) or all(elem is None for elem in self._uncert):
                 out = rf''
                 out += rf'['
                 for i, elem in enumerate(valStr):
@@ -249,8 +257,8 @@ class variable():
                         varianceContribution = 2 * scale_i * self.dependsOn[var_i] * scale_j * self.dependsOn[var_j] * var_i.covariance[var_j][0]
                         variance += varianceContribution
 
-        self.uncert = np.sqrt(variance)
-        logger.info(f'Calculated uncertanty to {self.uncert}')
+        self._uncert = np.sqrt(variance)
+        logger.info(f'Calculated uncertanty to {self._uncert}')
 
     def __add__(self, other):
         logger.info(f'Adding together {self} and {other}')
@@ -264,7 +272,7 @@ class variable():
             logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
             raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
-        val = self.value + other.value
+        val = self._value + other._value
         grad = [1, 1]
         vars = [self, other]
 
@@ -289,7 +297,7 @@ class variable():
             logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
             raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
-        val = self.value - other.value
+        val = self._value - other._value
         grad = [1, -1]
         vars = [self, other]
 
@@ -310,8 +318,8 @@ class variable():
 
         outputUnit = self._unitObject * other._unitObject
 
-        val = self.value * other.value
-        grad = [other.value, self.value]
+        val = self._value * other._value
+        grad = [other._value, self._value]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -329,15 +337,15 @@ class variable():
         if not isinstance(other, variable):
             return self ** variable(other)
 
-        if isinstance(other.value, np.ndarray):
+        if isinstance(other._value, np.ndarray):
             logger.error('The exponent has to be a single number')
             raise ValueError('The exponent has to be a single number')
         if str(other.unit) != '1':
             logger.error('The exponent can not have a unit')
             raise ValueError('The exponent can not have a unit')
 
-        val = self.value ** other.value
-        outputUnit = self._unitObject ** other.value
+        val = self._value ** other._value
+        outputUnit = self._unitObject ** other._value
 
         def gradSelf(valSelf, valOther, uncertSelf):
             if uncertSelf != 0:
@@ -351,8 +359,8 @@ class variable():
             else:
                 return 0
 
-        gradSelf = np.vectorize(gradSelf, otypes=[float])(self.value, other.value, self.uncert)
-        gradOther = np.vectorize(gradOther, otypes=[float])(self.value, other.value, other.uncert)
+        gradSelf = np.vectorize(gradSelf, otypes=[float])(self._value, other._value, self._uncert)
+        gradOther = np.vectorize(gradOther, otypes=[float])(self._value, other._value, other._uncert)
 
         grad = [gradSelf, gradOther]
         vars = [self, other]
@@ -370,9 +378,9 @@ class variable():
         if not isinstance(other, variable):
             return self / variable(other)
 
-        val = self.value / other.value
+        val = self._value / other._value
         outputUnit = self._unitObject / other._unitObject
-        grad = [1 / other.value, -self.value / (other.value**2)]
+        grad = [1 / other._value, -self._value / (other._value**2)]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -386,9 +394,9 @@ class variable():
         if not isinstance(other, variable):
             return variable(other) / self
 
-        val = other.value / self.value
+        val = other._value / self._value
         outputUnit = other._unitObject / self._unitObject
-        grad = [-other.value / (self.value**2), 1 / (self.value)]
+        grad = [-other._value / (self._value**2), 1 / (self._value)]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -406,10 +414,10 @@ class variable():
         if self.unit != '1':
             logger.error('You can only take the natural log of a variable if it has no unit')
             raise ValueError('You can only take the natural log of a variable if it has no unit')
-        val = np.log(self.value)
+        val = np.log(self._value)
 
         vars = [self]
-        grad = [1 / self.value]
+        grad = [1 / self._value]
 
         var = variable(val, '1')
         var._addDependents(vars, grad)
@@ -423,10 +431,10 @@ class variable():
         if self.unit != '1':
             logger.error('You can only take the base 10 log of a variable if it has no unit')
             raise ValueError('You can only take the base 10 log of a variable if it has no unit')
-        val = np.log10(self.value)
+        val = np.log10(self._value)
 
         vars = [self]
-        grad = [1 / (self.value * np.log10(self.value))]
+        grad = [1 / (self._value * np.log10(self._value))]
 
         var = variable(val, '1')
         var._addDependents(vars, grad)
@@ -447,11 +455,11 @@ class variable():
 
         outputUnit = '1'
         if self.unit == 'rad':
-            val = np.sin(self.value)
-            grad = [np.cos(self.value)]
+            val = np.sin(self._value)
+            grad = [np.cos(self._value)]
         else:
-            val = np.sin(np.pi / 180 * self.value)
-            grad = [np.pi / 180 * np.cos(np.pi / 180 * self.value)]
+            val = np.sin(np.pi / 180 * self._value)
+            grad = [np.pi / 180 * np.cos(np.pi / 180 * self._value)]
 
         vars = [self]
 
@@ -468,11 +476,11 @@ class variable():
 
         outputUnit = '1'
         if self.unit == 'rad':
-            val = np.cos(self.value)
-            grad = [-np.sin(self.value)]
+            val = np.cos(self._value)
+            grad = [-np.sin(self._value)]
         else:
-            val = np.cos(np.pi / 180 * self.value)
-            grad = [-np.pi / 180 * np.sin(np.pi / 180 * self.value)]
+            val = np.cos(np.pi / 180 * self._value)
+            grad = [-np.pi / 180 * np.sin(np.pi / 180 * self._value)]
 
         vars = [self]
 
@@ -489,11 +497,11 @@ class variable():
 
         outputUnit = '1'
         if self.unit == 'rad':
-            val = np.tan(self.value)
-            grad = [2 / (np.cos(2 * self.value) + 1)]
+            val = np.tan(self._value)
+            grad = [2 / (np.cos(2 * self._value) + 1)]
         else:
-            val = np.tan(np.pi / 180 * self.value)
-            grad = [np.pi / (90 * (np.cos(np.pi / 90 * self.value) + 1))]
+            val = np.tan(np.pi / 180 * self._value)
+            grad = [np.pi / (90 * (np.cos(np.pi / 90 * self._value) + 1))]
 
         vars = [self]
 
@@ -573,5 +581,3 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
-
-

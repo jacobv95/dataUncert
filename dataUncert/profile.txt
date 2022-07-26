@@ -1,223 +1,224 @@
-         900001 function calls (894401 primitive calls) in 0.655 seconds
+         901201 function calls (895601 primitive calls) in 0.579 seconds
 
    Ordered by: internal time
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-    23600    0.050    0.000    0.070    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:168(_removeExponentFromUnit)
-     2300    0.030    0.000    0.115    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:275(_getSIBaseUnit)
-    12300    0.027    0.000    0.027    0.000 {built-in method numpy.array}
-     2000    0.022    0.000    0.039    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:94(printUncertanty)
-     1300    0.021    0.000    0.150    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:206(_assertEqualStatic)
-     1200    0.020    0.000    0.247    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:466(getConverter)
-    11000    0.019    0.000    0.082    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:130(splitUnitExponentAndPrefix)
-      800    0.017    0.000    0.061    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:863(fillFormat)
-     8400    0.013    0.000    0.013    0.000 {built-in method numpy.core._multiarray_umath.dragon4_positional}
-     5600    0.013    0.000    0.023    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:947(__call__)
- 6400/800    0.013    0.000    0.043    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:718(recurser)
-     1900    0.013    0.000    0.039    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:251(__init__)
-    13300    0.011    0.000    0.018    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:155(_splitCompositeUnit)
-     2200    0.010    0.000    0.010    0.000 {method 'reduce' of 'numpy.ufunc' objects}
-      400    0.009    0.000    0.059    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:223(_calculateUncertanty)
-     5700    0.009    0.000    0.034    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:39(_wrapit)
+    23600    0.044    0.000    0.063    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:168(_removeExponentFromUnit)
+     2300    0.027    0.000    0.104    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:275(_getSIBaseUnit)
+    12300    0.024    0.000    0.024    0.000 {built-in method numpy.array}
+     2000    0.019    0.000    0.034    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:102(printUncertanty)
+     1300    0.018    0.000    0.132    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:206(_assertEqualStatic)
+     1200    0.017    0.000    0.219    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:466(getConverter)
+    11000    0.017    0.000    0.073    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:130(splitUnitExponentAndPrefix)
+      800    0.015    0.000    0.053    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:863(fillFormat)
+     5600    0.013    0.000    0.020    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:947(__call__)
+     1900    0.012    0.000    0.035    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:251(__init__)
+ 6400/800    0.012    0.000    0.038    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:718(recurser)
+     8400    0.011    0.000    0.011    0.000 {built-in method numpy.core._multiarray_umath.dragon4_positional}
+    13300    0.010    0.000    0.016    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:155(_splitCompositeUnit)
+     2200    0.009    0.000    0.009    0.000 {method 'reduce' of 'numpy.ufunc' objects}
     23600    0.009    0.000    0.009    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:173(<listcomp>)
-     2600    0.009    0.000    0.021    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:9(_cancleUnits)
-    15500    0.008    0.000    0.108    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
-     1000    0.008    0.000    0.365    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:10(__init__)
-     2600    0.008    0.000    0.014    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:54(_combineUpperAndLower)
-   122500    0.008    0.000    0.008    0.000 {built-in method builtins.len}
-     8100    0.007    0.000    0.050    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:52(_wrapfunc)
-      800    0.007    0.000    0.047    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:122(__str__)
-     5500    0.007    0.000    0.098    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:126(_getLists)
-    36600    0.007    0.000    0.007    0.000 {method 'split' of 'str' objects}
-     5200    0.006    0.000    0.006    0.000 {method 'argsort' of 'numpy.ndarray' objects}
-     1900    0.006    0.000    0.013    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:200(split)
-    11000    0.006    0.000    0.049    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:131(<listcomp>)
-     4600    0.006    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:278(addUnitsMultipleTimes)
-     5200    0.005    0.000    0.005    0.000 {method 'copy' of 'numpy.ndarray' objects}
+     5700    0.008    0.000    0.029    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:39(_wrapit)
+      400    0.008    0.000    0.052    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:231(_calculateUncertanty)
+     2600    0.008    0.000    0.019    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:9(_cancleUnits)
+    15500    0.008    0.000    0.094    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+     2600    0.007    0.000    0.013    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:54(_combineUpperAndLower)
+     1000    0.007    0.000    0.322    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:10(__init__)
+   122500    0.007    0.000    0.007    0.000 {built-in method builtins.len}
+     8100    0.006    0.000    0.043    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:52(_wrapfunc)
+     5500    0.006    0.000    0.087    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:126(_getLists)
+      800    0.006    0.000    0.041    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:130(__str__)
+    36600    0.006    0.000    0.006    0.000 {method 'split' of 'str' objects}
+     1900    0.005    0.000    0.011    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:200(split)
+    11000    0.005    0.000    0.044    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:131(<listcomp>)
+     4600    0.005    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:278(addUnitsMultipleTimes)
+     5200    0.005    0.000    0.005    0.000 {method 'argsort' of 'numpy.ndarray' objects}
+     5200    0.005    0.000    0.023    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:839(sort)
      2400    0.005    0.000    0.005    0.000 {method 'round' of 'numpy.generic' objects}
     23600    0.005    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:193(<listcomp>)
-    22400    0.005    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:250(_removePrefixFromUnit)
-     5200    0.005    0.000    0.026    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:839(sort)
-     2800    0.004    0.000    0.004    0.000 {built-in method numpy.core._multiarray_umath.dragon4_scientific}
-     5600    0.004    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:695(_extendLine)
-      600    0.004    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:85(reduceLists)
-     4800    0.004    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:21(__imul__)
+     5200    0.004    0.000    0.004    0.000 {method 'copy' of 'numpy.ndarray' objects}
+    22400    0.004    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:250(_removePrefixFromUnit)
+     5600    0.004    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:695(_extendLine)
     14400    0.004    0.000    0.004    0.000 {built-in method builtins.getattr}
-     1900    0.004    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1376(findCaller)
-     1100    0.004    0.000    0.315    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:331(__init__)
+    11000    0.004    0.000    0.007    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:134(<listcomp>)
+      600    0.004    0.000    0.011    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:85(reduceLists)
+     4800    0.004    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:21(__imul__)
      5200    0.004    0.000    0.004    0.000 {method 'sort' of 'numpy.ndarray' objects}
-    11000    0.004    0.000    0.008    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:134(<listcomp>)
-      800    0.004    0.000    0.119    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:478(_array2string)
-     2200    0.004    0.000    0.016    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:70(_wrapreduction)
-     1900    0.004    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:122(splitdrive)
-     4700    0.004    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:39(__itruediv__)
-     4500    0.004    0.000    0.007    0.000 {built-in method builtins.max}
-     1900    0.003    0.000    0.060    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1421(_log)
-     5200    0.003    0.000    0.048    0.000 <__array_function__ internals>:2(argsort)
-      800    0.003    0.000    0.070    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:409(_get_format_function)
-     5200    0.003    0.000    0.042    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:999(argsort)
-     1900    0.003    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\genericpath.py:117(_splitext)
+     1900    0.004    0.000    0.009    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1376(findCaller)
+     2800    0.004    0.000    0.004    0.000 {built-in method numpy.core._multiarray_umath.dragon4_scientific}
+     1100    0.004    0.000    0.281    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:331(__init__)
+      800    0.004    0.000    0.104    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:478(_array2string)
+     1900    0.003    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:122(splitdrive)
+     2200    0.003    0.000    0.014    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:70(_wrapreduction)
+     4700    0.003    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:39(__itruediv__)
+     4500    0.003    0.000    0.006    0.000 {built-in method builtins.max}
+     1900    0.003    0.000    0.054    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1421(_log)
+     5200    0.003    0.000    0.043    0.000 <__array_function__ internals>:2(argsort)
+      800    0.003    0.000    0.062    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:409(_get_format_function)
+     1900    0.003    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\genericpath.py:117(_splitext)
+     5200    0.003    0.000    0.037    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:999(argsort)
     34400    0.003    0.000    0.003    0.000 {method 'join' of 'str' objects}
-     1900    0.003    0.000    0.065    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1298(info)
-     1600    0.003    0.000    0.007    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:32(seterr)
-     4800    0.003    0.000    0.009    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:913(<genexpr>)
-     5200    0.003    0.000    0.032    0.000 <__array_function__ internals>:2(sort)
+     1900    0.003    0.000    0.058    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1298(info)
+     5200    0.003    0.000    0.028    0.000 <__array_function__ internals>:2(sort)
+     1600    0.003    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:32(seterr)
+     4800    0.003    0.000    0.008    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:913(<genexpr>)
     20400    0.003    0.000    0.003    0.000 {built-in method builtins.isinstance}
-      300    0.003    0.000    0.262    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:305(__mul__)
-      800    0.003    0.000    0.129    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:516(array2string)
-      400    0.003    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:195(_addDependents)
-     1600    0.003    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:132(geterr)
+      300    0.002    0.000    0.232    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:313(__mul__)
+      800    0.002    0.000    0.113    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:516(array2string)
+      400    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:203(_addDependents)
     14000    0.002    0.000    0.002    0.000 {built-in method builtins.sum}
-      800    0.002    0.000    0.064    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:836(__init__)
+     1900    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1500(callHandlers)
+     1600    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:132(geterr)
+      800    0.002    0.000    0.056    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:836(__init__)
      2300    0.002    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:142(_formatUnit)
      1900    0.002    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:44(normcase)
-     1900    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1500(callHandlers)
     10700    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:8(__init__)
-     4800    0.002    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:918(<genexpr>)
-     1900    0.002    0.000    0.041    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1406(makeRecord)
-      800    0.002    0.000    0.122    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:461(wrapper)
-      100    0.002    0.000    0.121    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:65(convert)
-     6100    0.002    0.000    0.002    0.000 {method 'replace' of 'str' objects}
-     6500    0.002    0.000    0.017    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_asarray.py:14(asarray)
+     1900    0.002    0.000    0.037    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1406(makeRecord)
+     4800    0.002    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:918(<genexpr>)
+      800    0.002    0.000    0.107    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:461(wrapper)
+     6500    0.002    0.000    0.015    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_asarray.py:14(asarray)
+      100    0.002    0.000    0.108    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:73(convert)
     11000    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:132(<listcomp>)
-      800    0.002    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:60(_make_options_dict)
-      500    0.002    0.000    0.002    0.000 {method 'round' of 'numpy.ndarray' objects}
-      800    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:358(_get_formatdict)
-     2900    0.002    0.000    0.017    0.000 <__array_function__ internals>:2(around)
-      300    0.002    0.000    0.033    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:72(_multiply)
-     1900    0.002    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1446(handle)
-     2300    0.002    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:293(<listcomp>)
-     2300    0.002    0.000    0.014    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:302(<listcomp>)
-     1900    0.002    0.000    0.008    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:223(splitext)
-     2900    0.002    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:3168(around)
-     2300    0.002    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:303(<listcomp>)
-    11000    0.002    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:133(<listcomp>)
-     1400    0.001    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2714(amin)
+     6100    0.002    0.000    0.002    0.000 {method 'replace' of 'str' objects}
+      800    0.002    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:60(_make_options_dict)
+     2900    0.002    0.000    0.015    0.000 <__array_function__ internals>:2(around)
+     1900    0.001    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1446(handle)
+     2300    0.001    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:302(<listcomp>)
+     2300    0.001    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:293(<listcomp>)
+     2300    0.001    0.000    0.011    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:303(<listcomp>)
+    11000    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:133(<listcomp>)
+     1900    0.001    0.000    0.007    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:223(splitext)
+     2900    0.001    0.000    0.011    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:3168(around)
+      800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:358(_get_formatdict)
+      300    0.001    0.000    0.029    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:72(_multiply)
      5700    0.001    0.000    0.001    0.000 {method 'rfind' of 'str' objects}
+     1400    0.001    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2714(amin)
+      500    0.001    0.000    0.001    0.000 {method 'round' of 'numpy.ndarray' objects}
+    11000    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:135(<listcomp>)
     11000    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:136(<listcomp>)
      1900    0.001    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1544(isEnabledFor)
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:225(<listcomp>)
-    11000    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:135(<listcomp>)
-      800    0.001    0.000    0.001    0.000 {built-in method builtins.locals}
-     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:61(<listcomp>)
-     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:59(<listcomp>)
      2300    0.001    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:294(<listcomp>)
-      800    0.001    0.000    0.130    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:1473(_array_str_implementation)
-     5200    0.001    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_asarray.py:86(asanyarray)
-     2300    0.001    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:289(<listcomp>)
-      100    0.001    0.000    0.099    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:280(__sub__)
-     2200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:71(<dictcomp>)
+     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:61(<listcomp>)
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:225(<listcomp>)
+     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:59(<listcomp>)
+     5200    0.001    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_asarray.py:86(asanyarray)
+      800    0.001    0.000    0.114    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:1473(_array_str_implementation)
+     2300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:289(<listcomp>)
      2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:60(<listcomp>)
-     2300    0.001    0.000    0.002    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:290(<listcomp>)
-     1400    0.001    0.000    0.014    0.000 <__array_function__ internals>:2(amin)
-     1900    0.001    0.000    0.014    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:234(basename)
-     7600    0.001    0.000    0.001    0.000 {built-in method nt.fspath}
-     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1530(getEffectiveLevel)
-      800    0.001    0.000    0.065    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:366(<lambda>)
+      800    0.001    0.000    0.001    0.000 {built-in method builtins.locals}
+     1900    0.001    0.000    0.012    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:234(basename)
+     2200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:71(<dictcomp>)
+     1400    0.001    0.000    0.012    0.000 <__array_function__ internals>:2(amin)
+      100    0.001    0.000    0.085    0.001 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:288(__sub__)
      3300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:318(<listcomp>)
-     1600    0.001    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:888(<genexpr>)
+     2300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:290(<listcomp>)
+      800    0.001    0.000    0.057    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:366(<lambda>)
      1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\threading.py:1230(current_thread)
-      800    0.001    0.000    0.007    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2589(amax)
-     3100    0.001    0.000    0.001    0.000 {method 'rstrip' of 'str' objects}
-      800    0.001    0.000    0.044    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:709(_formatArray)
-     6200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:190(<listcomp>)
+     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:1530(getEffectiveLevel)
+      800    0.001    0.000    0.006    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2589(amax)
      2900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:321(<listcomp>)
-     3400    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:48(convert)
-     2300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:298(<listcomp>)
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:226(<listcomp>)
-     1600    0.001    0.000    0.001    0.000 {built-in method numpy.seterrobj}
+     1600    0.001    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:888(<genexpr>)
+     6200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:190(<listcomp>)
+     7600    0.001    0.000    0.001    0.000 {built-in method nt.fspath}
+      800    0.001    0.000    0.039    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:709(_formatArray)
     10600    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
-     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:62(<listcomp>)
+     2300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:298(<listcomp>)
      4800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:922(<genexpr>)
-     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:120(getLevelName)
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:227(<listcomp>)
-     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:157(<lambda>)
-     3800    0.001    0.000    0.001    0.000 {built-in method builtins.hasattr}
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:230(<listcomp>)
-     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:705(filter)
-     1600    0.001    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:891(<genexpr>)
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:228(<listcomp>)
-     4800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:923(<genexpr>)
-     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:232(<listcomp>)
+     3100    0.001    0.000    0.001    0.000 {method 'rstrip' of 'str' objects}
+     1600    0.001    0.000    0.001    0.000 {built-in method numpy.seterrobj}
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:226(<listcomp>)
+     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:62(<listcomp>)
+     3400    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unitSystem.py:48(convert)
      3800    0.001    0.000    0.001    0.000 {method 'get' of 'dict' objects}
+     3800    0.001    0.000    0.001    0.000 {built-in method builtins.hasattr}
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:227(<listcomp>)
+     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:120(getLevelName)
+     4800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:923(<genexpr>)
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:228(<listcomp>)
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:232(<listcomp>)
+     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:157(<lambda>)
+     1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:230(<listcomp>)
      1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:231(<listcomp>)
+     1600    0.001    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:891(<genexpr>)
      2300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:299(<listcomp>)
      1300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:233(<listcomp>)
-      800    0.001    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:433(__enter__)
-      800    0.001    0.000    0.008    0.000 <__array_function__ internals>:2(amax)
-     4600    0.001    0.000    0.001    0.000 {built-in method _thread.get_ident}
-     5200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:995(_argsort_dispatcher)
-     1200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:483(<listcomp>)
-     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:57(<listcomp>)
+     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\logging\__init__.py:705(filter)
+      800    0.001    0.000    0.007    0.000 <__array_function__ internals>:2(amax)
+      800    0.001    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:433(__enter__)
      1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\ntpath.py:34(_get_bothseps)
-     1900    0.001    0.000    0.001    0.000 {built-in method sys._getframe}
+     4600    0.001    0.000    0.001    0.000 {built-in method _thread.get_ident}
       800    0.001    0.000    0.003    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:438(__exit__)
+     5200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:995(_argsort_dispatcher)
+     1900    0.001    0.000    0.001    0.000 {built-in method sys._getframe}
       800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:65(<dictcomp>)
-      600    0.001    0.000    0.005    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:102(<listcomp>)
+     2600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:57(<listcomp>)
      3300    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:319(<listcomp>)
-     1900    0.001    0.000    0.001    0.000 {built-in method time.time}
-     1900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\threading.py:1076(name)
-     5200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:835(_sort_dispatcher)
-      800    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:429(__init__)
-     3200    0.001    0.000    0.001    0.000 {built-in method numpy.geterrobj}
-     2900    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:322(<listcomp>)
+      600    0.001    0.000    0.004    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:102(<listcomp>)
      1600    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:93(<listcomp>)
-      800    0.001    0.000    0.001    0.000 {method 'copy' of 'dict' objects}
-     3700    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
-      200    0.000    0.000    0.000    0.000 {built-in method numpy.zeros}
+     5200    0.001    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:835(_sort_dispatcher)
+     1900    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\threading.py:1076(name)
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:483(<listcomp>)
+     2900    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:322(<listcomp>)
+     3200    0.000    0.000    0.000    0.000 {built-in method numpy.geterrobj}
+     1900    0.000    0.000    0.000    0.000 {built-in method time.time}
+      800    0.000    0.000    0.000    0.000 {method 'copy' of 'dict' objects}
      2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:304(<listcomp>)
-      300    0.000    0.000    0.033    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:401(__mul__)
+     3700    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
      2600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:58(<listcomp>)
      1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:36(<listcomp>)
-     3200    0.000    0.000    0.000    0.000 {built-in method builtins.issubclass}
-     1900    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+      300    0.000    0.000    0.029    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:401(__mul__)
      2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:296(<listcomp>)
-     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:305(<listcomp>)
-     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:306(<listcomp>)
-     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:501(<listcomp>)
-      600    0.000    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:105(<listcomp>)
-     1900    0.000    0.000    0.000    0.000 {built-in method nt.getpid}
-     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:307(<listcomp>)
-     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:35(<listcomp>)
      2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:297(<listcomp>)
+     3200    0.000    0.000    0.000    0.000 {built-in method builtins.issubclass}
+     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:306(<listcomp>)
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:35(<listcomp>)
+     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:305(<listcomp>)
+     1900    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+      600    0.000    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:105(<listcomp>)
+     2300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:307(<listcomp>)
+      200    0.000    0.000    0.000    0.000 {built-in method numpy.zeros}
      2900    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:3164(_around_dispatcher)
+     1900    0.000    0.000    0.000    0.000 {built-in method nt.getpid}
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:501(<listcomp>)
      1600    0.000    0.000    0.001    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:892(<genexpr>)
-     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:484(<listcomp>)
-     4600    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
-     1100    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:58(_getConverterToSI)
      1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:41(<listcomp>)
-      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:87(<listcomp>)
+     1100    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:58(_getConverterToSI)
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:484(<listcomp>)
      1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:40(<listcomp>)
+      800    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\_ufunc_config.py:429(__init__)
+      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:87(<listcomp>)
      1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:37(<listcomp>)
-     1400    0.000    0.000    0.000    0.000 {method 'partition' of 'str' objects}
+     4600    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
      1600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:893(<genexpr>)
-     1600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:903(<genexpr>)
-     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:350(__str__)
      1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:38(<listcomp>)
-     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:42(<listcomp>)
-     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:502(<listcomp>)
-      800    0.000    0.000    0.000    0.000 {method 'discard' of 'set' objects}
-      100    0.000    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:388(_assertEqual)
-     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:43(<listcomp>)
      1600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:896(<genexpr>)
+     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:42(<listcomp>)
+     1600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:903(<genexpr>)
+     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:43(<listcomp>)
+     1400    0.000    0.000    0.000    0.000 {method 'partition' of 'str' objects}
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:502(<listcomp>)
      1600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:94(<listcomp>)
-      600    0.000    0.000    0.000    0.000 {method 'index' of 'list' objects}
-      800    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+      100    0.000    0.000    0.009    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:388(_assertEqual)
+      800    0.000    0.000    0.000    0.000 {method 'discard' of 'set' objects}
+     1000    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:350(__str__)
      1400    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2709(_amin_dispatcher)
-      400    0.000    0.000    0.000    0.000 {built-in method builtins.all}
+      800    0.000    0.000    0.000    0.000 {method 'update' of 'dict' objects}
+      600    0.000    0.000    0.000    0.000 {method 'index' of 'list' objects}
       800    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\arrayprint.py:827(_none_or_positive_arg)
-      800    0.000    0.000    0.000    0.000 {method 'add' of 'set' objects}
       600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:103(<listcomp>)
-      400    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:166(<genexpr>)
-      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:104(<listcomp>)
+      800    0.000    0.000    0.000    0.000 {method 'add' of 'set' objects}
+     1200    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:69(uncert)
+      400    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:174(<genexpr>)
       800    0.000    0.000    0.000    0.000 {built-in method builtins.id}
+      400    0.000    0.000    0.000    0.000 {built-in method builtins.all}
       800    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\numpy\core\fromnumeric.py:2584(_amax_dispatcher)
-      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:106(<listcomp>)
-      100    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:61(unit)
+      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:104(<listcomp>)
       300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:79(<listcomp>)
+      600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:106(<listcomp>)
+      100    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\variable.py:65(unit)
       600    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:107(<listcomp>)
       300    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:82(<listcomp>)
-      100    0.000    0.000    0.010    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:397(__sub__)
+      100    0.000    0.000    0.009    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:397(__sub__)
       100    0.000    0.000    0.000    0.000 C:\Users\DJAVE\AppData\Local\Programs\Python\Python36\lib\site-packages\dataUncert\unit.py:343(isCombinationUnit)
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
 

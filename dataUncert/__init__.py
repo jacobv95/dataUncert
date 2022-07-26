@@ -82,7 +82,7 @@ def setLogLevel(level):
 
 
 # import the necessary modules
-from dataUncert.variable import *
-from dataUncert.fit import *
-from dataUncert.readData import *
-from dataUncert.unit import *
+from dataUncert.variable import variable
+from dataUncert.fit import dummy_fit, pol_fit, lin_fit, exp_fit, pow_fit, logistic_fit, logistic_100_fit
+from dataUncert.readData import readData
+import dataUncert.constant as constant
