@@ -105,7 +105,11 @@ class variable():
             return f'{value:.{self.nDigits}g}', None
 
         digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
-        digitsValue = -int(np.floor(np.log10(np.abs(value))))
+
+        if value != 0:
+            digitsValue = -int(np.floor(np.log10(np.abs(value))))
+        else:
+            digitsValue = 0
 
         # uncertanty
         if digitsUncert > 0:
