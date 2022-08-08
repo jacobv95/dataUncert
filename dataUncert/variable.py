@@ -23,17 +23,24 @@ class variable():
             if isinstance(input, np.ndarray):
                 return input
             else:
+                listLike = False
                 try:
                     len(input)
-                    return np.array(input, dtype=float)
+                    listLike = True
                 except:
+                    pass
+                if listLike:
+                    return np.array(input, dtype=float)
+                else:
                     return np.array([input], dtype=float)
         self._value = evaluateInput(value)
-        self._uncert = evaluateInput([0] * len(self) if uncert is None else uncert)
+        if uncert is None:
+            self._uncert = evaluateInput([0] * self.len())
+        else:
+            self._uncert = evaluateInput(uncert)
 
         # check the length of the uncertanty and the value
-        lenUncert = 1 if len(self._uncert.shape) == 0 else len(self._uncert)
-        if len(self) != lenUncert:
+        if self.len() != len(self._uncert):
             raise ValueError('The lenght of the value has to be equal to the lenght of the uncertanty')
 
         # value and unit in SI. This is used when determining the gradient in the uncertanty expression
@@ -48,14 +55,9 @@ class variable():
 
     @property
     def value(self):
-        if len(self) == 1:
+        if self.len() == 1:
             return self._value[0]
         return self._value
-
-    def __len__(self):
-        if len(self._value.shape) == 0:
-            return 1
-        return len(self._value)
 
     @property
     def unit(self):
@@ -63,7 +65,7 @@ class variable():
 
     @property
     def uncert(self):
-        if len(self) == 1:
+        if self.len() == 1:
             return self._uncert[0]
         return self._uncert
 
@@ -82,19 +84,22 @@ class variable():
 
         logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self._value} +/- {self._uncert} [{self.unit}]')
 
-    # def __getitem__(self, items):
-    #     if isinstance(self._value, np.ndarray):
-    #         if isinstance(items, int):
-    #             items = [items]
-    #         vals = [self._value[i] for i in items]
-    #         uncert = [self._uncert[i]for i in items]
-    #         return variable(vals, self.unit, uncert)
-    #     else:
-    #         if items == 0:
-    #             return self
-    #         else:
-    #             L = np.array([0])
-    #             L[items]
+    def len(self):
+        return len(self._value)
+
+    def __getitem__(self, index):
+        if isinstance(index, int) or isinstance(index, slice):
+            if index >= self.len():
+                raise IndexError('Index out of bounds')
+            if self.len() == 1:
+                if index != 0:
+                    raise IndexError('Index out of bound')
+                return variable(self.value, self._unitObject, self.uncert)
+            return variable(self.value[index], self._unitObject, self.uncert[index])
+        else:
+            val = [self.value[elem]for elem in index]
+            unc = [self.uncert[elem]for elem in index]
+            return variable(val, self._unitObject, unc)
 
     def printUncertanty(self, value, uncert):
         # function to print number
@@ -151,7 +156,7 @@ class variable():
         else:
             unitStr = rf'{squareBracketLeft}{unitStr}{squareBracketRight}'
 
-        if not isinstance(self.value, np.ndarray):
+        if self.len() == 1:
             # print a single value
             value = self.value
             if self.uncert != 0:
@@ -237,7 +242,10 @@ class variable():
     def _calculateUncertanty(self):
 
         # variance from each measurement
-        variance = np.zeros(len(self))
+        if self.len() == 0:
+            variance = 0
+        else:
+            variance = np.zeros(self.len())
         selfScaleToSI = self._converterToSI.convert(1, useOffset=False)
         for var, grad in self.dependsOn.items():
             # the gradient is scaled with the inverse of the conversion of the unit to SI units.
@@ -340,7 +348,7 @@ class variable():
         if not isinstance(other, variable):
             return self ** variable(other)
 
-        if len(other) != 1:
+        if other.len() != 1:
             logger.error('The exponent has to be a single number')
             raise ValueError('The exponent has to be a single number')
         if str(other.unit) != '1':

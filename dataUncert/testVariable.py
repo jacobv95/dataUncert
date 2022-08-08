@@ -378,37 +378,37 @@ class test(unittest.TestCase):
             np.exp(C_vec)
         self.assertTrue('The exponent has to be a single number' in str(context.exception))
 
-    # def testIndex(self):
-    #     A = variable(12.3, 'L/min', uncert=2.6)
-    #     A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
+    def testIndex(self):
+        A = variable(12.3, 'L/min', uncert=2.6)
+        A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
 
-    #     a = A[0]
-    #     self.assertEqual(a.value, 12.3)
-    #     self.assertEqual(a.unit, 'L/min')
-    #     self.assertEqual(a.uncert, 2.6)
+        a = A[0]
+        self.assertEqual(a.value, 12.3)
+        self.assertEqual(a.unit, 'L/min')
+        self.assertEqual(a.uncert, 2.6)
 
-    #     a_vec = A_vec[0, 1]
-    #     np.testing.assert_equal(a_vec.value, [12.3, 54.3])
-    #     self.assertEqual(a_vec.unit, 'L/min')
-    #     np.testing.assert_equal(a_vec.uncert, [2.6, 5.4])
+        a_vec = A_vec[0, 1]
+        np.testing.assert_equal(a_vec.value, [12.3, 54.3])
+        self.assertEqual(a_vec.unit, 'L/min')
+        np.testing.assert_equal(a_vec.uncert, [2.6, 5.4])
 
-    #     a_vec = A_vec[0, 2]
-    #     np.testing.assert_equal(a_vec.value, [12.3, 91.3])
-    #     self.assertEqual(a_vec.unit, 'L/min')
-    #     np.testing.assert_equal(a_vec.uncert, [2.6, 10.56])
+        a_vec = A_vec[0, 2]
+        np.testing.assert_equal(a_vec.value, [12.3, 91.3])
+        self.assertEqual(a_vec.unit, 'L/min')
+        np.testing.assert_equal(a_vec.uncert, [2.6, 10.56])
 
-    #     a_vec = A_vec[2, 0]
-    #     np.testing.assert_equal(a_vec.value, [91.3, 12.3])
-    #     self.assertEqual(a_vec.unit, 'L/min')
-    #     np.testing.assert_equal(a_vec.uncert, [10.56, 2.6])
+        a_vec = A_vec[2, 0]
+        np.testing.assert_equal(a_vec.value, [91.3, 12.3])
+        self.assertEqual(a_vec.unit, 'L/min')
+        np.testing.assert_equal(a_vec.uncert, [10.56, 2.6])
 
-    #     with self.assertRaises(Exception) as context:
-    #         a = A[1]
-    #     self.assertTrue('index 1 is out of bounds for axis 0 with size 1' in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            a = A[1]
+        self.assertTrue('Index out of bounds' in str(context.exception))
 
-    #     with self.assertRaises(Exception) as context:
-    #         a = A[23]
-    #     self.assertTrue('index 23 is out of bounds for axis 0 with size 1' in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            a = A[23]
+        self.assertTrue('Index out of bounds' in str(context.exception))
 
     def testAddEqual(self):
         A = variable(12.3, 'L/min', uncert=2.6)
