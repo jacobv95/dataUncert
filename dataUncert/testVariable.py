@@ -36,19 +36,19 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             variable(1.3, 'm', [1.0, 2.3])
-        self.assertTrue("The value is a number but the uncertanty is a <class 'list'>" in str(context.exception))
+        self.assertTrue("The lenght of the value has to be equal to the lenght of the uncertanty" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             variable(1.3, 'm', np.array([1.0, 2.3]))
-        self.assertTrue("The value is a number but the uncertanty is a <class 'numpy.ndarray'>" in str(context.exception))
+        self.assertTrue("The lenght of the value has to be equal to the lenght of the uncertanty" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             variable(np.array([1.0, 2.3]), 'm', 1.5)
-        self.assertTrue("The value is a list-like object but the uncertanty is a number" in str(context.exception))
+        self.assertTrue("The lenght of the value has to be equal to the lenght of the uncertanty" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             variable([1.0, 2.3], 'm', 1.5)
-        self.assertTrue("The value is a list-like object but the uncertanty is a number" in str(context.exception))
+        self.assertTrue("The lenght of the value has to be equal to the lenght of the uncertanty" in str(context.exception))
 
     def test_add(self):
         A = variable(12.3, 'L/min', uncert=2.6)
@@ -115,21 +115,6 @@ class test(unittest.TestCase):
                 np.sqrt((1 * 10.56)**2 + (1 * 6.4)**2),
             ]))
 
-        C_vec.convert('mm3 / h')
-        np.testing.assert_almost_equal(C_vec.value, np.array([12.3 - 745.1, 54.3 - 496.13, 91.3 - 120.54]) * 1000000 * 60, decimal=5)
-        self.assertEqual(C_vec.unit, 'mm3/h')
-        np.testing.assert_almost_equal(
-            C_vec.uncert,
-            np.array([
-                np.sqrt((1 * 2.6 * 1000000 * 60)**2 + (1 * 53.9 * 1000000 * 60)**2),
-                np.sqrt((1 * 5.4 * 1000000 * 60)**2 + (1 * 24.75 * 1000000 * 60)**2),
-                np.sqrt((1 * 10.56 * 1000000 * 60)**2 + (1 * 6.4 * 1000000 * 60)**2),
-            ]), decimal=5)
-
-        with self.assertRaises(Exception) as context:
-            A.convert('m')
-        self.assertTrue('You tried to convert from L/min to m. But these do not have the same base units' in str(context.exception))
-
     def test_add_with_different_units(self):
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'm', uncert=53.9)
@@ -144,10 +129,6 @@ class test(unittest.TestCase):
             A_vec + B_vec
         self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
 
-        with self.assertRaises(Exception) as context:
-            A.convert('m')
-        self.assertTrue('You tried to convert from L/min to m. But these do not have the same base units' in str(context.exception))
-
     def test_sub_with_different_units(self):
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'm', uncert=53.9)
@@ -161,10 +142,6 @@ class test(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             A_vec - B_vec
         self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
-
-        with self.assertRaises(Exception) as context:
-            A.convert('m')
-        self.assertTrue('You tried to convert from L/min to m. But these do not have the same base units' in str(context.exception))
 
     def test_multiply(self):
         A = variable(12.3, 'L/min', uncert=2.6)
@@ -401,37 +378,37 @@ class test(unittest.TestCase):
             np.exp(C_vec)
         self.assertTrue('The exponent has to be a single number' in str(context.exception))
 
-    def testIndex(self):
-        A = variable(12.3, 'L/min', uncert=2.6)
-        A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
+    # def testIndex(self):
+    #     A = variable(12.3, 'L/min', uncert=2.6)
+    #     A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
 
-        a = A[0]
-        self.assertEqual(a.value, 12.3)
-        self.assertEqual(a.unit, 'L/min')
-        self.assertEqual(a.uncert, 2.6)
+    #     a = A[0]
+    #     self.assertEqual(a.value, 12.3)
+    #     self.assertEqual(a.unit, 'L/min')
+    #     self.assertEqual(a.uncert, 2.6)
 
-        a_vec = A_vec[0, 1]
-        np.testing.assert_equal(a_vec.value, [12.3, 54.3])
-        self.assertEqual(a_vec.unit, 'L/min')
-        np.testing.assert_equal(a_vec.uncert, [2.6, 5.4])
+    #     a_vec = A_vec[0, 1]
+    #     np.testing.assert_equal(a_vec.value, [12.3, 54.3])
+    #     self.assertEqual(a_vec.unit, 'L/min')
+    #     np.testing.assert_equal(a_vec.uncert, [2.6, 5.4])
 
-        a_vec = A_vec[0, 2]
-        np.testing.assert_equal(a_vec.value, [12.3, 91.3])
-        self.assertEqual(a_vec.unit, 'L/min')
-        np.testing.assert_equal(a_vec.uncert, [2.6, 10.56])
+    #     a_vec = A_vec[0, 2]
+    #     np.testing.assert_equal(a_vec.value, [12.3, 91.3])
+    #     self.assertEqual(a_vec.unit, 'L/min')
+    #     np.testing.assert_equal(a_vec.uncert, [2.6, 10.56])
 
-        a_vec = A_vec[2, 0]
-        np.testing.assert_equal(a_vec.value, [91.3, 12.3])
-        self.assertEqual(a_vec.unit, 'L/min')
-        np.testing.assert_equal(a_vec.uncert, [10.56, 2.6])
+    #     a_vec = A_vec[2, 0]
+    #     np.testing.assert_equal(a_vec.value, [91.3, 12.3])
+    #     self.assertEqual(a_vec.unit, 'L/min')
+    #     np.testing.assert_equal(a_vec.uncert, [10.56, 2.6])
 
-        with self.assertRaises(Exception) as context:
-            a = A[1]
-        self.assertTrue('index 1 is out of bounds for axis 0 with size 1' in str(context.exception))
+    #     with self.assertRaises(Exception) as context:
+    #         a = A[1]
+    #     self.assertTrue('index 1 is out of bounds for axis 0 with size 1' in str(context.exception))
 
-        with self.assertRaises(Exception) as context:
-            a = A[23]
-        self.assertTrue('index 23 is out of bounds for axis 0 with size 1' in str(context.exception))
+    #     with self.assertRaises(Exception) as context:
+    #         a = A[23]
+    #     self.assertTrue('index 23 is out of bounds for axis 0 with size 1' in str(context.exception))
 
     def testAddEqual(self):
         A = variable(12.3, 'L/min', uncert=2.6)

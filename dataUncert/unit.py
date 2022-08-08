@@ -210,7 +210,7 @@ class unit():
         bUpper, bUpperPrefix, bUpperExp, bLower, bLowerPrefix, bLowerExp = unit._getLists(b)
 
         if bool(aLower) != bool(bLower):
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
 
         aUpperIndexes = np.argsort(aUpper)
         aLowerIndexes = np.argsort(aLower)
@@ -233,17 +233,17 @@ class unit():
         bLowerPrefixSorted = [bLowerPrefix[elem] for elem in bLowerIndexes]
 
         if aUpperSorted != bUpperSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
         if aLowerSorted != bLowerSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
         if aUpperExpSorted != bUpperExpSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
         if aLowerExpSorted != bLowerExpSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
         if aUpperPrefixSorted != bUpperPrefixSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
         if aLowerPrefixSorted != bLowerPrefixSorted:
-            raise ValueError(f'You tried to add the unit {a} to the unit {b}. These do not match')
+            return False
 
         return True
 
@@ -391,12 +391,14 @@ class unit():
         return self._assertEqualStatic(self.unitStr, other)
 
     def __add__(self, other):
-        self._assertEqual(other)
-        return self.unitStr
+        if not(self._assertEqual(other)):
+            return False
+        return self
 
     def __sub__(self, other):
-        self._assertEqual(other)
-        return self.unitStr
+        if not(self._assertEqual(other)):
+            return False
+        return self
 
     def __mul__(self, other):
         return unit._multiply(self.unitStr, other.unitStr)
@@ -471,9 +473,8 @@ class unit():
 
         # determine if the SI bases are identical
         otherSIBase = self._getSIBaseUnit(otherUpper, otherUpperExp, otherLower, otherLowerExp)
-        try:
-            unit._assertEqualStatic(self._SIBaseUnit, otherSIBase)
-        except ValueError:
+
+        if unit._assertEqualStatic(self._SIBaseUnit, otherSIBase) == False:
             raise ValueError(f'You tried to convert from {self} to {newUnit}. But these do not have the same base units')
 
         # initialize the scale and offset

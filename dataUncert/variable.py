@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
@@ -17,36 +18,23 @@ class variable():
         # number of digits to show
         self.nDigits = nDigits
 
-        # parse the value and the uncertaty
-        try:
-            # the value is a single number
-            self._value = float(value)
+        # store the value and the uncertaty
+        def evaluateInput(input):
+            if isinstance(input, np.ndarray):
+                return input
+            else:
+                try:
+                    len(input)
+                    return np.array(input, dtype=float)
+                except:
+                    return np.array([input], dtype=float)
+        self._value = evaluateInput(value)
+        self._uncert = evaluateInput([0] * len(self) if uncert is None else uncert)
 
-            if uncert is None:
-                self._uncert = 0
-            else:
-                try:
-                    # the uncertanty is a number
-                    self._uncert = float(uncert)
-                except TypeError:
-                    logger.error(f'The value is a number but the uncertanty is a {type(uncert)}')
-                    raise ValueError(f'The value is a number but the uncertanty is a {type(uncert)}')
-        except TypeError:
-            # the value contains multiple elements
-            if uncert is None:
-                self._value = np.array(value, dtype=float)
-                self._uncert = np.zeros(len(value), dtype=float)
-            else:
-                try:
-                    float(uncert)
-                    logger.error(f'The value is a list-like object but the uncertanty is a number')
-                    raise ValueError(f'The value is a list-like object but the uncertanty is a number')
-                except TypeError:
-                    if len(value) != len(uncert):
-                        logger.error('The number of elements in the value is not equal to the number of elements in the uncertanty')
-                        raise ValueError('The number of elements in the value is not equal to the number of elements in the uncertanty')
-                    self._value = np.array(value, dtype=float)
-                    self._uncert = np.array(uncert, dtype=float)
+        # check the length of the uncertanty and the value
+        lenUncert = 1 if len(self._uncert.shape) == 0 else len(self._uncert)
+        if len(self) != lenUncert:
+            raise ValueError('The lenght of the value has to be equal to the lenght of the uncertanty')
 
         # value and unit in SI. This is used when determining the gradient in the uncertanty expression
         self._getConverterToSI()
@@ -60,7 +48,14 @@ class variable():
 
     @property
     def value(self):
+        if len(self) == 1:
+            return self._value[0]
         return self._value
+
+    def __len__(self):
+        if len(self._value.shape) == 0:
+            return 1
+        return len(self._value)
 
     @property
     def unit(self):
@@ -68,6 +63,8 @@ class variable():
 
     @property
     def uncert(self):
+        if len(self) == 1:
+            return self._uncert[0]
         return self._uncert
 
     def convert(self, newUnit):
@@ -85,23 +82,23 @@ class variable():
 
         logger.info(f'Converted the varible from {oldValue} +/- {oldUncert} [{oldUnit}] to {self._value} +/- {self._uncert} [{self.unit}]')
 
-    def __getitem__(self, items):
-        if isinstance(self._value, np.ndarray):
-            if isinstance(items, int):
-                items = [items]
-            vals = [self._value[i] for i in items]
-            uncert = [self._uncert[i]for i in items]
-            return variable(vals, self.unit, uncert)
-        else:
-            if items == 0:
-                return self
-            else:
-                L = np.array([0])
-                L[items]
+    # def __getitem__(self, items):
+    #     if isinstance(self._value, np.ndarray):
+    #         if isinstance(items, int):
+    #             items = [items]
+    #         vals = [self._value[i] for i in items]
+    #         uncert = [self._uncert[i]for i in items]
+    #         return variable(vals, self.unit, uncert)
+    #     else:
+    #         if items == 0:
+    #             return self
+    #         else:
+    #             L = np.array([0])
+    #             L[items]
 
     def printUncertanty(self, value, uncert):
         # function to print number
-        if uncert == 0 or uncert is None:
+        if uncert == 0 or uncert is None or np.isnan(uncert):
             return f'{value:.{self.nDigits}g}', None
 
         digitsUncert = -int(np.floor(np.log10(np.abs(uncert))))
@@ -154,11 +151,11 @@ class variable():
         else:
             unitStr = rf'{squareBracketLeft}{unitStr}{squareBracketRight}'
 
-        if isinstance(self._value, float) or isinstance(self._value, int):
+        if not isinstance(self.value, np.ndarray):
             # print a single value
-            value = self._value
-            if self._uncert != 0:
-                uncert = self._uncert
+            value = self.value
+            if self.uncert != 0:
+                uncert = self.uncert
 
             value, uncert = self.printUncertanty(value, uncert)
             if uncert is None:
@@ -205,6 +202,11 @@ class variable():
                 return out
 
     def _addDependents(self, vars, grads):
+        # copy the gradients
+        # this prevents a pointer error as the gradients often are set to the value of a variable
+        # when the gradients are scaled this causes problems
+        grads = [deepcopy(elem) for elem in grads]
+
         # loop over the variables and their gradients
         for var, grad in zip(vars, grads):
             # scale the gradient to SI units. This is necessary if one of the variables are converted after the dependency has been noted
@@ -235,7 +237,7 @@ class variable():
     def _calculateUncertanty(self):
 
         # variance from each measurement
-        variance = 0
+        variance = np.zeros(len(self))
         selfScaleToSI = self._converterToSI.convert(1, useOffset=False)
         for var, grad in self.dependsOn.items():
             # the gradient is scaled with the inverse of the conversion of the unit to SI units.
@@ -248,18 +250,17 @@ class variable():
         for i in range(n):
             var_i = list(self.dependsOn.keys())[i]
             for j in range(i + 1, n):
-                if i != j:
-                    var_j = list(self.dependsOn.keys())[j]
-                    if var_j in var_i.covariance.keys():
-                        if not var_i in var_j.covariance.keys():
-                            logger.error(
-                                f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
-                            raise ValueError(
-                                f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
-                        scale_i = var_i._converterToSI.convert(1, useOffset=False) / selfScaleToSI
-                        scale_j = var_j._converterToSI.convert(1, useOffset=False) / selfScaleToSI
-                        varianceContribution = 2 * scale_i * self.dependsOn[var_i] * scale_j * self.dependsOn[var_j] * var_i.covariance[var_j][0]
-                        variance += varianceContribution
+                var_j = list(self.dependsOn.keys())[j]
+                if var_j in var_i.covariance.keys():
+                    if not var_i in var_j.covariance.keys():
+                        logger.error(
+                            f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
+                        raise ValueError(
+                            f'The variable {var_i} is correlated with the varaible {var_j}. However the variable {var_j} not not correlated with the variable {var_i}. Something is wrong.')
+                    scale_i = var_i._converterToSI.convert(1, useOffset=False) / selfScaleToSI
+                    scale_j = var_j._converterToSI.convert(1, useOffset=False) / selfScaleToSI
+                    varianceContribution = 2 * scale_i * self.dependsOn[var_i] * scale_j * self.dependsOn[var_j] * var_i.covariance[var_j][0]
+                    variance += varianceContribution
 
         self._uncert = np.sqrt(variance)
         logger.info(f'Calculated uncertanty to {self._uncert}')
@@ -270,9 +271,8 @@ class variable():
         if not isinstance(other, variable):
             return self + variable(other, self.unit)
 
-        try:
-            outputUnit = self._unitObject + other._unitObject
-        except ValueError:
+        outputUnit = self._unitObject + other._unitObject
+        if isinstance(outputUnit, bool):
             logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
             raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
 
@@ -295,13 +295,12 @@ class variable():
         if not isinstance(other, variable):
             return self - variable(other, self.unit)
 
-        try:
-            outputUnit = self._unitObject - other._unitObject
-        except ValueError:
+        outputUnit = self._unitObject - other._unitObject
+        if isinstance(outputUnit, bool):
             logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
             raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
 
-        val = self._value - other._value
+        val = self.value - other.value
         grad = [1, -1]
         vars = [self, other]
 
@@ -322,7 +321,7 @@ class variable():
 
         outputUnit = self._unitObject * other._unitObject
 
-        val = self._value * other._value
+        val = self.value * other.value
         grad = [other._value, self._value]
         vars = [self, other]
 
@@ -341,15 +340,15 @@ class variable():
         if not isinstance(other, variable):
             return self ** variable(other)
 
-        if isinstance(other._value, np.ndarray):
+        if len(other) != 1:
             logger.error('The exponent has to be a single number')
             raise ValueError('The exponent has to be a single number')
         if str(other.unit) != '1':
             logger.error('The exponent can not have a unit')
             raise ValueError('The exponent can not have a unit')
 
-        val = self._value ** other._value
-        outputUnit = self._unitObject ** other._value
+        val = self._value ** other.value
+        outputUnit = self._unitObject ** other.value
 
         def gradSelf(valSelf, valOther, uncertSelf):
             if uncertSelf != 0:
@@ -418,10 +417,11 @@ class variable():
         if self.unit != '1':
             logger.error('You can only take the natural log of a variable if it has no unit')
             raise ValueError('You can only take the natural log of a variable if it has no unit')
-        val = np.log(self._value)
+
+        val = np.log(self.value)
 
         vars = [self]
-        grad = [1 / self._value]
+        grad = [1 / self.value]
 
         var = variable(val, '1')
         var._addDependents(vars, grad)
@@ -435,10 +435,10 @@ class variable():
         if self.unit != '1':
             logger.error('You can only take the base 10 log of a variable if it has no unit')
             raise ValueError('You can only take the base 10 log of a variable if it has no unit')
-        val = np.log10(self._value)
+        val = np.log10(self.value)
 
         vars = [self]
-        grad = [1 / (self._value * np.log10(self._value))]
+        grad = [1 / (self.value * np.log10(self.value))]
 
         var = variable(val, '1')
         var._addDependents(vars, grad)
@@ -458,12 +458,12 @@ class variable():
             raise ValueError('You can only take sin of an angle')
 
         outputUnit = '1'
-        if self.unit == 'rad':
-            val = np.sin(self._value)
-            grad = [np.cos(self._value)]
+        if self._unitObject._assertEqual('rad'):
+            val = np.sin(self.value)
+            grad = [np.cos(self.value)]
         else:
-            val = np.sin(np.pi / 180 * self._value)
-            grad = [np.pi / 180 * np.cos(np.pi / 180 * self._value)]
+            val = np.sin(np.pi / 180 * self.value)
+            grad = [np.pi / 180 * np.cos(np.pi / 180 * self.value)]
 
         vars = [self]
 
@@ -480,11 +480,11 @@ class variable():
 
         outputUnit = '1'
         if self.unit == 'rad':
-            val = np.cos(self._value)
-            grad = [-np.sin(self._value)]
+            val = np.cos(self.value)
+            grad = [-np.sin(self.value)]
         else:
-            val = np.cos(np.pi / 180 * self._value)
-            grad = [-np.pi / 180 * np.sin(np.pi / 180 * self._value)]
+            val = np.cos(np.pi / 180 * self.value)
+            grad = [-np.pi / 180 * np.sin(np.pi / 180 * self.value)]
 
         vars = [self]
 
@@ -501,11 +501,11 @@ class variable():
 
         outputUnit = '1'
         if self.unit == 'rad':
-            val = np.tan(self._value)
-            grad = [2 / (np.cos(2 * self._value) + 1)]
+            val = np.tan(self.value)
+            grad = [2 / (np.cos(2 * self.value) + 1)]
         else:
-            val = np.tan(np.pi / 180 * self._value)
-            grad = [np.pi / (90 * (np.cos(np.pi / 90 * self._value) + 1))]
+            val = np.tan(np.pi / 180 * self.value)
+            grad = [np.pi / (90 * (np.cos(np.pi / 90 * self.value) + 1))]
 
         vars = [self]
 
@@ -514,6 +514,9 @@ class variable():
         var._calculateUncertanty()
 
         return var
+
+    def __abs__(self):
+        return variable(np.abs(self.value), self.unit, self.uncert)
 
     def __array_function__(self, func, types, args, kwargs):
         if func not in HANDLED_FUNCTIONS:

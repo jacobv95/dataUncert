@@ -60,9 +60,8 @@ class test(unittest.TestCase):
     def testAdd(self):
         a = unit('L/min')
         b = unit('kg-m/L')
-        with self.assertRaises(Exception) as context:
-            c = a + b
-        self.assertEqual('You tried to add the unit L/min to the unit kg-m/L. These do not match', str(context.exception))
+        c = a + b
+        self.assertEqual(c, False)
         a = unit('L/min')
         b = unit('L/min')
         c = a + b
@@ -76,9 +75,8 @@ class test(unittest.TestCase):
     def testSub(self):
         a = unit('L/min')
         b = unit('kg-m/L')
-        with self.assertRaises(Exception) as context:
-            c = a - b
-        self.assertEqual('You tried to add the unit L/min to the unit kg-m/L. These do not match', str(context.exception))
+        c = a - b
+        self.assertEqual(c, False)
         a = unit('L/min')
         b = unit('L/min')
         c = a - b
