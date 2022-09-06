@@ -28,24 +28,24 @@ class test(unittest.TestCase):
         """ (L/min) * (kg-m/L)
             L-kg-m/min-L
             kg-m/min    """
-        c = a * b
+        c,s = a * b
         self.assertTrue(unit(c)._assertEqual('kg-m/min'))
 
         a = unit('L/min')
         b = unit('L/min')
-        c = a * b
+        c,s = a * b
         self.assertEqual(str(c), 'L2/min2')
 
         a = unit('km')
         b = unit('1/m')
-        c = a * b
+        c,s = a * b
         self.assertEqual(str(c), '1')
 
     def testDivide(self):
 
         a = unit('L/min')
         b = unit('L/min')
-        c = a / b
+        c,s = a / b
         self.assertEqual(str(c), '1')
 
         a = unit('L/min')
@@ -53,9 +53,14 @@ class test(unittest.TestCase):
         """ L/min / (kg-m/L)
             L/min * L/kg-m
             L2 / min-kg-m """
-        c = a / b
+        c,s = a / b
 
         self.assertTrue(unit('L2/min-kg-m')._assertEqual(unit(c)))
+
+        A = unit('m')
+        B = unit('cm')
+        c,s = A / B
+        self.assertEqual(c, '1')
 
     def testAdd(self):
         a = unit('L/min')
@@ -109,7 +114,7 @@ class test(unittest.TestCase):
 
         a = unit('A')
         b = unit('V')
-        c = a * b
+        c,s = a * b
         c = unit(c)
         converter = c.getConverter('W')
         self.assertAlmostEqual(converter.convert(1, useOffset=True), 1)

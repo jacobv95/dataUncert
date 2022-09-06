@@ -327,10 +327,12 @@ class variable():
         if not isinstance(other, variable):
             return self * variable(other)
 
-        outputUnit = self._unitObject * other._unitObject
-
         val = self.value * other.value
+        outputUnit, scaling = self._unitObject * other._unitObject
+        val *= scaling
+
         grad = [other._value, self._value]
+        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -390,8 +392,11 @@ class variable():
             return self / variable(other)
 
         val = self._value / other._value
-        outputUnit = self._unitObject / other._unitObject
+        outputUnit, scaling = self._unitObject / other._unitObject
+        val *= scaling
+
         grad = [1 / other._value, -self._value / (other._value**2)]
+        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -406,8 +411,11 @@ class variable():
             return variable(other) / self
 
         val = other._value / self._value
-        outputUnit = other._unitObject / self._unitObject
+        outputUnit, scaling = other._unitObject / self._unitObject
+        val *= scaling
+
         grad = [-other._value / (self._value**2), 1 / (self._value)]
+        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
@@ -596,3 +604,5 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
+
+

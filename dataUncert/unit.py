@@ -110,6 +110,8 @@ class unit():
         upper, upperPrefix, upperExp = reduceLists(upper, upperPrefix, upperExp)
         lower, lowerPrefix, lowerExp = reduceLists(lower, lowerPrefix, lowerExp)
 
+        scaling = unit._scaling(upper, upperPrefix, lower, lowerPrefix)
+
         upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = unit._cancleUnits(
             upper,
             upperPrefix,
@@ -121,7 +123,18 @@ class unit():
 
         out = unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
 
-        return out
+        return out, scaling
+
+    @staticmethod
+    def _scaling(upper, upperPrefix, lower, lowerPrefix):
+        scaling = 1
+        for up, upPre in zip(upper, upperPrefix):
+            if not up == '1' and not upPre is None:
+                scaling *= knownPrefixes[upPre]
+        for low, lowPre in zip(lower, lowerPrefix):
+            if not low == '1' and not lowPre is None:
+                scaling /= knownPrefixes[lowPre]
+        return scaling
 
     @staticmethod
     def _getLists(unitStr):

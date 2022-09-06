@@ -177,6 +177,13 @@ class test(unittest.TestCase):
                 np.sqrt((120.54 / 1000 * 10.56 / 1000 / 60)**2 + (91.3 / 1000 / 60 * 6.4 / 1000)**2),
             ]), decimal=7)
 
+        a = variable(1.2, 'm/N', 0.15)
+        b = variable(7.43, 'N/cm', 2.5)
+        c = a * b
+        self.assertAlmostEqual(c.value, 891.6)
+        self.assertEqual(c.unit, '1')
+        self.assertAlmostEqual(c.uncert, 320.032970958)
+
     def test_divide(self):
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'm', uncert=53.9)
@@ -214,6 +221,13 @@ class test(unittest.TestCase):
                 np.sqrt((1 / 496.13 * 5.4 / 1000 * 60 / 1000)**2 + (54.3 / (496.13)**2 * 24.75 / 1000 * 60 / 1000)**2),
                 np.sqrt((1 / 120.54 * 10.56 / 1000 * 60 / 1000)**2 + (91.3 / (120.54)**2 * 6.4 / 1000 * 60 / 1000)**2),
             ]))
+
+        a = variable(1.2, 'm/N', 0.15)
+        b = variable(7.43, 'cm/N', 2.5)
+        c = a / b
+        self.assertAlmostEqual(c.value, 16.1507402423)
+        self.assertEqual(c.unit, '1')
+        self.assertAlmostEqual(c.uncert, 5.79718414412)
 
     def test_add_unit_order(self):
         A = variable(10, 'm-K')
