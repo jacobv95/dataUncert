@@ -18,5 +18,5 @@ class constant(variable):
         raise ValueError('You cannot use the method /= on a constant')
 
 
-g = constant(9.81, 'm/s2')
-c = constant(299792458, 'm/s')
+# g = constant(9.81, 'm/s2')
+# c = constant(299792458, 'm/s')

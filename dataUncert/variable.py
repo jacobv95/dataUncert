@@ -328,16 +328,17 @@ class variable():
             return self * variable(other)
 
         val = self.value * other.value
-        outputUnit, scaling = self._unitObject * other._unitObject
-        val *= scaling
+        outputUnit = self._unitObject * other._unitObject
 
         grad = [other._value, self._value]
-        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
         var._calculateUncertanty()
+
+        if var._unitObject._SIBaseUnit == '1' and var._unitObject != '1':
+            var.convert('1')
 
         return var
 
@@ -392,16 +393,17 @@ class variable():
             return self / variable(other)
 
         val = self._value / other._value
-        outputUnit, scaling = self._unitObject / other._unitObject
-        val *= scaling
+        outputUnit = self._unitObject / other._unitObject
 
         grad = [1 / other._value, -self._value / (other._value**2)]
-        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
         var._calculateUncertanty()
+
+        if var._unitObject._SIBaseUnit == '1' and var._unitObject != '1':
+            var.convert('1')
 
         return var
 
@@ -411,16 +413,17 @@ class variable():
             return variable(other) / self
 
         val = other._value / self._value
-        outputUnit, scaling = other._unitObject / self._unitObject
-        val *= scaling
+        outputUnit = other._unitObject / self._unitObject
 
         grad = [-other._value / (self._value**2), 1 / (self._value)]
-        grad = [elem * scaling for elem in grad]
         vars = [self, other]
 
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
         var._calculateUncertanty()
+
+        if var._unitObject._SIBaseUnit == '1' and var._unitObject != '1':
+            var.convert('1')
 
         return var
 
@@ -604,5 +607,3 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
-
-

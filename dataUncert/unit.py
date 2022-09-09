@@ -6,6 +6,18 @@ from dataUncert.unitSystem import knownCharacters, knownPrefixes, knownUnits, ba
 
 class unit():
 
+    def __init__(self, unitStr) -> None:
+        if unitStr == '':
+            unitStr = '1'
+
+        # split the unit in upper and lower
+        self.unitStr = self._formatUnit(unitStr)
+
+        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
+
+        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
+        self._converterToSI = self.getConverter(self._SIBaseUnit)
+
     @staticmethod
     def _cancleUnits(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
         # cancle the units
@@ -13,22 +25,24 @@ class unit():
             if up in lower:
                 indexLower = lower.index(up)
 
-                expUpper = upperExp[indexUpper]
-                expLower = lowerExp[indexLower]
+                # only cancle units if they have the same prefix
+                if upperPrefix[indexUpper] == lowerPrefix[indexLower]:
+                    expUpper = upperExp[indexUpper]
+                    expLower = lowerExp[indexLower]
 
-                # set the unit to '1'
-                if expUpper == expLower:
-                    upper[indexUpper] = '1'
-                    lower[indexLower] = '1'
-                elif expUpper < expLower:
-                    upper[indexUpper] = '1'
-                else:
-                    lower[indexLower] = '1'
+                    # set the unit to '1'
+                    if expUpper == expLower:
+                        upper[indexUpper] = '1'
+                        lower[indexLower] = '1'
+                    elif expUpper < expLower:
+                        upper[indexUpper] = '1'
+                    else:
+                        lower[indexLower] = '1'
 
-                # reduce the exponent
-                minExp = np.min([expUpper, expLower])
-                lowerExp[indexLower] -= minExp
-                upperExp[indexUpper] -= minExp
+                    # reduce the exponent
+                    minExp = np.min([expUpper, expLower])
+                    lowerExp[indexLower] -= minExp
+                    upperExp[indexUpper] -= minExp
 
         # remove '1' if the upper or lower is longer than 1
         if len(upper) > 1:
@@ -110,8 +124,6 @@ class unit():
         upper, upperPrefix, upperExp = reduceLists(upper, upperPrefix, upperExp)
         lower, lowerPrefix, lowerExp = reduceLists(lower, lowerPrefix, lowerExp)
 
-        scaling = unit._scaling(upper, upperPrefix, lower, lowerPrefix)
-
         upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp = unit._cancleUnits(
             upper,
             upperPrefix,
@@ -123,18 +135,7 @@ class unit():
 
         out = unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
 
-        return out, scaling
-
-    @staticmethod
-    def _scaling(upper, upperPrefix, lower, lowerPrefix):
-        scaling = 1
-        for up, upPre in zip(upper, upperPrefix):
-            if not up == '1' and not upPre is None:
-                scaling *= knownPrefixes[upPre]
-        for low, lowPre in zip(lower, lowerPrefix):
-            if not low == '1' and not lowPre is None:
-                scaling /= knownPrefixes[lowPre]
-        return scaling
+        return out
 
     @staticmethod
     def _getLists(unitStr):
@@ -340,18 +341,6 @@ class unit():
         )
 
         return unit._combineUpperAndLower(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp)
-
-    def __init__(self, unitStr) -> None:
-        if unitStr == '':
-            unitStr = '1'
-
-        # split the unit in upper and lower
-        self.unitStr = self._formatUnit(unitStr)
-
-        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
-
-        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
-        self._converterToSI = self.getConverter(self._SIBaseUnit)
 
     def isCombinationUnit(self):
         if len(self.upper) > 1:
