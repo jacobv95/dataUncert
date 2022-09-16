@@ -923,12 +923,6 @@ class test(unittest.TestCase):
         self.assertEqual(A.unit, 'm')
         self.assertEqual(A.uncert, 0)
 
-        A = variable([10, 15.7], 'm')
-        B = variable(8, 'L', 2.3)
-        with self.assertRaises(Exception) as context:
-            max([A, B])
-        self.assertTrue("'>' not supported between instances of 'variable' and 'variable'" in str(context.exception))
-
     def testMin(self):
 
         A = variable(10, 'm', 2.3)
@@ -954,12 +948,6 @@ class test(unittest.TestCase):
         self.assertEqual(A.value, 10)
         self.assertEqual(A.unit, 'm')
         self.assertEqual(A.uncert, 0)
-
-        A = variable([10, 15.7], 'm')
-        B = variable(8, 'L', 2.3)
-        with self.assertRaises(Exception) as context:
-            min([A, B])
-        self.assertTrue("'<' not supported between instances of 'variable' and 'variable'" in str(context.exception))
 
     def testMean(self):
 
@@ -1172,6 +1160,86 @@ class test(unittest.TestCase):
         b = variable(1, 'm')
         c = a * b
         c.convert('mm2')
+
+    def testCompare(self):
+        a = variable(1, 'm')
+        b = variable([2, 3, 4], 'm')
+        self.assertListEqual(a < b, [True, True, True])
+        self.assertEqual(a <= b, [True, True, True])
+        self.assertEqual(a > b, [False, False, False])
+        self.assertEqual(a >= b, [False, False, False])
+        self.assertEqual(a == b, [False, False, False])
+        self.assertEqual(a != b, [True, True, True])
+
+        a = variable([2, 3, 4], 'm')
+        b = variable(1, 'm')
+        self.assertListEqual(a < b, [False, False, False])
+        self.assertEqual(a <= b, [False, False, False])
+        self.assertEqual(a > b, [True, True, True])
+        self.assertEqual(a >= b, [True, True, True])
+        self.assertEqual(a == b, [False, False, False])
+        self.assertEqual(a != b, [True, True, True])
+
+        a = variable([1, 2], 'm')
+        b = variable([2, 3, 4], 'm')
+        with self.assertRaises(Exception) as context:
+            c = a < b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a <= b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a > b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a >= b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a == b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a != b
+        self.assertTrue("You cannot compare [1, 2] [m] and [2, 3, 4] [m] as they do not have the same length" in str(context.exception))
+
+        a = variable(1, 'm')
+        b = variable(2, 'C')
+        with self.assertRaises(Exception) as context:
+            c = a < b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a <= b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a > b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a >= b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a == b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        with self.assertRaises(Exception) as context:
+            c = a != b
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+
+        a = variable([1, 2, 3], 'm')
+        b = variable([2, 3, 4], 'm')
+        self.assertListEqual(a < b, [True, True, True])
+        self.assertEqual(a <= b, [True, True, True])
+        self.assertEqual(a > b, [False, False, False])
+        self.assertEqual(a >= b, [False, False, False])
+        self.assertEqual(a == b, [False, False, False])
+        self.assertEqual(a != b, [True, True, True])
 
 
 if __name__ == '__main__':

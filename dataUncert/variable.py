@@ -546,6 +546,77 @@ class variable():
             return NotImplemented
         return HANDLED_FUNCTIONS[func](*args, **kwargs)
 
+    def _compareUnits(self, other):
+        if not self._unitObject._assertEqual(other._unitObject):
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same unit')
+
+    def _compareLengths(self, other):
+        if self.len() != other.len():
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same length')
+
+    def __lt__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value < other.value)
+        elif other.len() == 1:
+            return list(self.value < other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA < elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __le__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value <= other.value)
+        elif other.len() == 1:
+            return list(self.value <= other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA <= elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __gt__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value > other.value)
+        elif other.len() == 1:
+            return list(self.value > other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA > elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __ge__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value >= other.value)
+        elif other.len() == 1:
+            return list(self.value >= other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA >= elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __eq__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value == other.value)
+        elif other.len() == 1:
+            return list(self.value == other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA == elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __ne__(self, other):
+        self._compareUnits(other)
+        if self.len() == 1:
+            return list(self.value != other.value)
+        elif other.len() == 1:
+            return list(self.value != other.value)
+        else:
+            self._compareLengths(other)
+            return [elemA != elemB for elemA, elemB in zip(self.value, other.value)]
+
+    def __hash__(self):
+        return id(self)
+
 
 def implements(numpy_function):
     """Register an __array_function__ implementation for Physical objects."""
@@ -557,7 +628,7 @@ def implements(numpy_function):
 
 @implements(np.max)
 def np_max_for_variable(x, *args, **kwargs):
-    if isinstance(x.value, np.ndarray):
+    if x.len() > 1:
         index = np.argmax(x.value)
         val = x.value[index]
         if not x.uncert is None:
@@ -575,7 +646,7 @@ def np_max_for_variable(x, *args, **kwargs):
 
 @implements(np.min)
 def np_max_for_variable(x, *args, **kwargs):
-    if isinstance(x.value, np.ndarray):
+    if x.len() > 1:
         index = np.argmin(x.value)
         val = x.value[index]
         if not x.uncert is None:
@@ -593,7 +664,7 @@ def np_max_for_variable(x, *args, **kwargs):
 
 @implements(np.mean)
 def np_mean_for_variable(x, *args, **kwargs):
-    if isinstance(x.value, np.ndarray):
+    if x.len() > 1:
         val = np.mean(x.value)
         if not x.uncert is None:
             n = len(x.uncert)
