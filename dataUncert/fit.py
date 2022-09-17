@@ -51,7 +51,7 @@ class _fit():
 
         # determine r-squared
         np.seterr('ignore')
-        residuals = (variable(self.yVal, self.yUnit) - self.predict(self.xVal)).value
+        residuals = self.yVal - self.predict(self.xVal).value
         np.seterr('warn')
         y_bar = np.mean(self.yVal)
         ss_res = np.sum(residuals**2)
@@ -345,10 +345,13 @@ class pol_fit(_fit):
             if self.terms[i]:
                 value = self.popt[index]
                 uncert = self.uPopt[index]
-                u = self.yUnit / (unit(self.xUnit ** (n - i)))
+                u = self.yUnit
+                if i != n:
+                    u /= unit(self.xUnit ** (n - i))
                 var = variable(value, u, uncert)
                 popt.append(var)
                 index += 1
+
         self.popt = popt
 
     def func(self, B, x):
@@ -545,3 +548,22 @@ class logistic_100_fit(_fit):
         out += f'\quad k={k}'
         out += f'\quad x_0={x0}$'
         return out
+
+
+if __name__ == "__main__":
+    a = 2
+    b = 10
+    n = 100
+    x = np.linspace(0, 100, n)
+    y = a * x + b
+
+    x = variable(x, 'm')
+    y = variable(y, 'C')
+
+    F = lin_fit(x, y)
+    Fa = F.popt[0]
+    Fb = F.popt[1]
+
+    x = variable(100, 'm')
+    y = Fa * x + Fb
+    print(y)

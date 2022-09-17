@@ -67,9 +67,9 @@ class test(unittest.TestCase):
         self.assertAlmostEqual(C.uncert, np.sqrt((1 * 2.6 / 1000 / 60)**2 + (1 * 53.9 / 1000 / 60)**2))
 
         C_vec = A_vec + B_vec
-        np.testing.assert_array_equal(C_vec.value, np.array([12.3 + 745.1, 54.3 + 496.13, 91.3 + 120.54]))
+        np.testing.assert_almost_equal(C_vec.value, np.array([12.3 + 745.1, 54.3 + 496.13, 91.3 + 120.54]))
         self.assertEqual(C_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             C_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2),
@@ -105,9 +105,9 @@ class test(unittest.TestCase):
         self.assertAlmostEqual(C.uncert, np.sqrt((1 * 2.6 / 1000 / 60)**2 + (1 * 53.9 / 1000 / 60)**2))
 
         C_vec = A_vec - B_vec
-        np.testing.assert_array_equal(C_vec.value, np.array([12.3 - 745.1, 54.3 - 496.13, 91.3 - 120.54]))
+        np.testing.assert_almost_equal(C_vec.value, np.array([12.3 - 745.1, 54.3 - 496.13, 91.3 - 120.54]))
         self.assertEqual(C_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             C_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2),
@@ -116,6 +116,27 @@ class test(unittest.TestCase):
             ]))
 
     def test_add_with_different_units(self):
+        A = variable(12.3, 'm3/s', uncert=2.6)
+        B = variable(745.1, 'L/min', uncert=53.9)
+        C = A + B
+        self.assertAlmostEqual(C.value, 12.3 + 745.1 / 1000 / 60)
+        self.assertEqual(C.unit, 'm3/s')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + (53.9 / 1000 / 60)**2))
+
+        A = variable(12.3, 'C', uncert=2.6)
+        B = variable(745.1, 'K', uncert=53.9)
+        C = A + B
+        self.assertAlmostEqual(C.value, 12.3 + 273.15 + 745.1)
+        self.assertEqual(C.unit, 'K')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + 53.9**2))
+
+        A = variable(12.3, 'C', uncert=2.6)
+        B = variable(745.1, 'DELTAK', uncert=53.9)
+        C = A + B
+        self.assertAlmostEqual(C.value, 12.3 + 745.1)
+        self.assertEqual(C.unit, 'C')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + 53.9**2))
+
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'm', uncert=53.9)
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
@@ -123,13 +144,42 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             A + B
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec + B_vec
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
     def test_sub_with_different_units(self):
+        A = variable(12.3, 'm3/s', uncert=2.6)
+        B = variable(745.1, 'L/min', uncert=53.9)
+        C = A - B
+        self.assertAlmostEqual(C.value, 12.3 - 745.1 / 1000 / 60)
+        self.assertEqual(C.unit, 'm3/s')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + (53.9 / 1000 / 60)**2))
+
+        A = variable(12.3, 'C', uncert=2.6)
+        B = variable(745.1, 'K', uncert=53.9)
+        C = A - B
+        self.assertAlmostEqual(C.value, 12.3 + 273.15 - 745.1)
+        self.assertEqual(C.unit, 'K')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + 53.9**2))
+
+        A = variable(12.3, 'C', uncert=2.6)
+        B = variable(745.1, 'DELTAK', uncert=53.9)
+        C = A - B
+        self.assertAlmostEqual(C.value, 12.3 - 745.1)
+        self.assertEqual(C.unit, 'C')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + 53.9**2))
+        
+        A = variable(12.3, 'C', uncert=2.6)
+        B = variable(745.1, 'C', uncert=53.9)
+        C = A - B
+        self.assertAlmostEqual(C.value, 12.3 - 745.1)
+        self.assertEqual(C.unit, 'DELTAC')
+        self.assertAlmostEqual(C.uncert, np.sqrt(2.6**2 + 53.9**2))
+
+
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'm', uncert=53.9)
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
@@ -137,11 +187,11 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             A - B
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec - B_vec
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
     def test_multiply(self):
         A = variable(12.3, 'L/min', uncert=2.6)
@@ -429,30 +479,30 @@ class test(unittest.TestCase):
         B = variable(745.1, 'L/min', uncert=53.9)
 
         A += B
-        self.assertEqual(A.value, 12.3 + 745.1)
+        self.assertAlmostEqual(A.value, 12.3 + 745.1)
         self.assertEqual(A.unit, 'L/min')
-        self.assertEqual(A.uncert, np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2))
+        self.assertAlmostEqual(A.uncert, np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2))
         A = variable(12.3, 'L/min', uncert=2.6)
 
         A += 2
-        self.assertEqual(A.value, 12.3 + 2)
+        self.assertAlmostEqual(A.value, 12.3 + 2)
         self.assertEqual(A.unit, 'L/min')
-        self.assertEqual(A.uncert, np.sqrt((1 * 2.6)**2))
+        self.assertAlmostEqual(A.uncert, np.sqrt((1 * 2.6)**2))
 
         A = variable(12.3, 'L/min', uncert=2.6)
         B = 2
         B += A
-        self.assertEqual(B.value, 2 + 12.3)
+        self.assertAlmostEqual(B.value, 2 + 12.3)
         self.assertEqual(B.unit, 'L/min')
-        self.assertEqual(B.uncert, np.sqrt((1 * 2.6)**2))
+        self.assertAlmostEqual(B.uncert, np.sqrt((1 * 2.6)**2))
 
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
         B_vec = variable([745.1, 496.13, 120.54], 'L/min', uncert=[53.9, 24.75, 6.4])
 
         A_vec += B_vec
-        np.testing.assert_array_equal(A_vec.value, np.array([12.3 + 745.1, 54.3 + 496.13, 91.3 + 120.54]))
+        np.testing.assert_almost_equal(A_vec.value, np.array([12.3 + 745.1, 54.3 + 496.13, 91.3 + 120.54]))
         self.assertEqual(A_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             A_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2),
@@ -463,9 +513,9 @@ class test(unittest.TestCase):
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
         A = variable(12.3, 'L/min', uncert=2.6)
         A_vec += A
-        np.testing.assert_array_equal(A_vec.value, np.array([12.3 + 12.3, 54.3 + 12.3, 91.3 + 12.3]))
+        np.testing.assert_almost_equal(A_vec.value, np.array([12.3 + 12.3, 54.3 + 12.3, 91.3 + 12.3]))
         self.assertEqual(A_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             A_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 2.6)**2),
@@ -480,65 +530,65 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             A += B
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B += A
-        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec += B_vec
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B_vec += A_vec
-        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec += B
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B_vec += A
-        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A += B_vec
-        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [L/min] to a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B += A_vec
-        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to add a variable in [m] to a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
     def testSubEqual(self):
         A = variable(12.3, 'L/min', uncert=2.6)
         B = variable(745.1, 'L/min', uncert=53.9)
 
         A -= B
-        self.assertEqual(A.value, 12.3 - 745.1)
+        self.assertAlmostEqual(A.value, 12.3 - 745.1)
         self.assertEqual(A.unit, 'L/min')
-        self.assertEqual(A.uncert, np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2))
+        self.assertAlmostEqual(A.uncert, np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2))
         A = variable(12.3, 'L/min', uncert=2.6)
 
         A -= 2
-        self.assertEqual(A.value, 12.3 - 2)
+        self.assertAlmostEqual(A.value, 12.3 - 2)
         self.assertEqual(A.unit, 'L/min')
-        self.assertEqual(A.uncert, np.sqrt((1 * 2.6)**2))
+        self.assertAlmostEqual(A.uncert, np.sqrt((1 * 2.6)**2))
 
         A = variable(12.3, 'L/min', uncert=2.6)
         B = 2
         B -= A
-        self.assertEqual(B.value, 2 - 12.3)
+        self.assertAlmostEqual(B.value, 2 - 12.3)
         self.assertEqual(B.unit, 'L/min')
-        self.assertEqual(B.uncert, np.sqrt((1 * 2.6)**2))
+        self.assertAlmostEqual(B.uncert, np.sqrt((1 * 2.6)**2))
 
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
         B_vec = variable([745.1, 496.13, 120.54], 'L/min', uncert=[53.9, 24.75, 6.4])
 
         A_vec -= B_vec
-        np.testing.assert_array_equal(A_vec.value, np.array([12.3 - 745.1, 54.3 - 496.13, 91.3 - 120.54]))
+        np.testing.assert_almost_equal(A_vec.value, np.array([12.3 - 745.1, 54.3 - 496.13, 91.3 - 120.54]))
         self.assertEqual(A_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             A_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 53.9)**2),
@@ -549,9 +599,9 @@ class test(unittest.TestCase):
         A_vec = variable([12.3, 54.3, 91.3], 'L/min', uncert=[2.6, 5.4, 10.56])
         A = variable(12.3, 'L/min', uncert=2.6)
         A_vec -= A
-        np.testing.assert_array_equal(A_vec.value, np.array([12.3 - 12.3, 54.3 - 12.3, 91.3 - 12.3]))
+        np.testing.assert_almost_equal(A_vec.value, np.array([12.3 - 12.3, 54.3 - 12.3, 91.3 - 12.3]))
         self.assertEqual(A_vec.unit, 'L/min')
-        np.testing.assert_array_equal(
+        np.testing.assert_almost_equal(
             A_vec.uncert,
             np.array([
                 np.sqrt((1 * 2.6)**2 + (1 * 2.6)**2),
@@ -566,35 +616,35 @@ class test(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             A -= B
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B -= A
-        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec -= B_vec
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B_vec -= A_vec
-        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A_vec -= B
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B_vec -= A
-        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             A -= B_vec
-        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [m] from a variable in [L/min], but the units do not have the same SI base unit' in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             B -= A_vec
-        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units does not match' in str(context.exception))
+        self.assertTrue('You tried to subtract a variable in [L/min] from a variable in [m], but the units do not have the same SI base unit' in str(context.exception))
 
     def testMultiEqual(self):
         A = variable(12.3, 'L/min', uncert=2.6)

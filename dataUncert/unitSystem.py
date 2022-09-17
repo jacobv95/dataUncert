@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 class _unitConversion():
 
-    def __init__(self, scale, offset) -> None:
+    def __init__(self, scale, offset=0) -> None:
         self.scale = scale
         self.offset = offset
 
@@ -53,72 +53,80 @@ class _unitConversion():
 
 
 baseUnit = {
-    '1': _unitConversion(1, 0),
-    '': _unitConversion(1, 0)
+    '1': _unitConversion(1),
+    '': _unitConversion(1)
 }
 
 force = {
-    'N': _unitConversion(1, 0)
+    'N': _unitConversion(1)
 }
 
 mass = {
-    'g': _unitConversion(1 / 1000, 0)
+    'g': _unitConversion(1 / 1000)
 }
 
 energy = {
-    'J': _unitConversion(1, 0),
+    'J': _unitConversion(1),
 }
 
 power = {
-    'W': _unitConversion(1, 0)
+    'W': _unitConversion(1)
 }
 
 pressure = {
-    'Pa': _unitConversion(1, 0),
-    'bar': _unitConversion(1e5, 0)
+    'Pa': _unitConversion(1),
+    'bar': _unitConversion(1e5)
 }
 
 temperature = {
-    'K': _unitConversion(1, 0),
+    'K': _unitConversion(1),
     'C': _unitConversion(1, 273.15),
     '°C': _unitConversion(1, 273.15),
     'F': _unitConversion(5 / 9, 273.15 - 32 * 5 / 9),
     '°F': _unitConversion(5 / 9, 273.15 - 32 * 5 / 9)
+
 }
 
+temperatureDifference = {
+    'DELTAK': _unitConversion(1),
+    'DELTAC': _unitConversion(1),
+    'DELTAF': _unitConversion(5 / 9)
+}
+
+
 time = {
-    's': _unitConversion(1, 0),
-    'min': _unitConversion(60, 0),
-    'h': _unitConversion(60 * 60, 0),
-    'yr': _unitConversion(60 * 60 * 24 * 365, 0)
+    's': _unitConversion(1),
+    'min': _unitConversion(60),
+    'h': _unitConversion(60 * 60),
+    'yr': _unitConversion(60 * 60 * 24 * 365)
 }
 
 volume = {
-    'm3': _unitConversion(1, 0),
-    'L': _unitConversion(1 / 1000, 0)
+    'm3': _unitConversion(1),
+    'L': _unitConversion(1 / 1000)
 }
 
 length = {
-    'm': _unitConversion(1, 0),
-    'Å': _unitConversion(1e-10, 0),
-    'ly': _unitConversion(9460730472580800, 0)
+    'm': _unitConversion(1),
+    'Å': _unitConversion(1e-10),
+    'ly': _unitConversion(9460730472580800)
 }
 
 angle = {
-    'rad': _unitConversion(1, 0),
-    '°': _unitConversion(np.pi / 180, 0)
+    'rad': _unitConversion(1),
+    '°': _unitConversion(np.pi / 180)
 }
 
 current = {
-    'A': _unitConversion(1, 0)
+    'A': _unitConversion(1)
 }
 
 voltage = {
-    'V': _unitConversion(1, 0)
+    'V': _unitConversion(1)
 }
 
 frequency = {
-    'Hz': _unitConversion(1, 0)
+    'Hz': _unitConversion(1)
 }
 
 knownUnitsDict = {
@@ -126,6 +134,7 @@ knownUnitsDict = {
     'kg/m-s2': pressure,
     's': time,
     'K': temperature,
+    'DELTAK': temperatureDifference,
     'm3': volume,
     'm': length,
     'kg-m2/s2': energy,

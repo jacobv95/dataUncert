@@ -77,7 +77,7 @@ class variable():
         converter = self._unitObject.getConverter(newUnit)
         self._value = converter.convert(self._value, useOffset=not self._unitObject.isCombinationUnit())
         self._uncert = converter.convert(self._uncert, useOffset=False)
-        self._unitObject = unit(newUnit)
+        self._unitObject.convert(newUnit)
 
         # update the converter to SI
         self._getConverterToSI()
@@ -279,19 +279,40 @@ class variable():
         if not isinstance(other, variable):
             return self + variable(other, self.unit)
 
-        outputUnit = self._unitObject + other._unitObject
-        if isinstance(outputUnit, bool):
-            logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
-            raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units does not match')
+        # determine if the two variable can be added
+        addBool, outputUnit = self._unitObject + other._unitObject
+        if not addBool:
+            logger.error(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units do not have the same SI base unit')
+            raise ValueError(f'You tried to add a variable in [{self.unit}] to a variable in [{other.unit}], but the units do not have the same SI base unit')
 
+        # convert self and other to the SI unit system
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(other._unitObject._SIBaseUnit)
+
+        # determine the value and gradients
         val = self._value + other._value
         grad = [1, 1]
         vars = [self, other]
 
+        # create the new variable
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
         var._calculateUncertanty()
 
+        # convert self and other back
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+
+        # convert the output variable
+        if outputUnit == 'K':
+            SIBaseUnits = [self._unitObject._SIBaseUnit, other._unitObject._SIBaseUnit]
+            if 'DELTAK' in SIBaseUnits:
+                outputUnit = [self.unit, other.unit][SIBaseUnits.index('K')]
+                var.convert(outputUnit)
+        if self.unit == other.unit:
+            var.convert(self.unit)
         return var
 
     def __radd__(self, other):
@@ -303,18 +324,40 @@ class variable():
         if not isinstance(other, variable):
             return self - variable(other, self.unit)
 
-        outputUnit = self._unitObject - other._unitObject
-        if isinstance(outputUnit, bool):
-            logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
-            raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units does not match')
+        # determine if the variables can be subtracted
+        subBool, outputUnit = self._unitObject - other._unitObject
+        if not subBool:
+            logger.error(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units do not have the same SI base unit')
+            raise ValueError(f'You tried to subtract a variable in [{other.unit}] from a variable in [{self.unit}], but the units do not have the same SI base unit')
 
+        # convert self and other to the SI unit system
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(other._unitObject._SIBaseUnit)
+
+        # determine the value and gradients
         val = self.value - other.value
         grad = [1, -1]
         vars = [self, other]
 
+        # create the new variable
         var = variable(val, outputUnit)
         var._addDependents(vars, grad)
         var._calculateUncertanty()
+
+        # convert self and other back
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+
+        # convert the output variable
+        if outputUnit == 'K':
+            SIBaseUnits = [self._unitObject._SIBaseUnit, other._unitObject._SIBaseUnit]
+            if 'DELTAK' in SIBaseUnits:
+                outputUnit = [self.unit, other.unit][SIBaseUnits.index('K')]
+                var.convert(outputUnit)
+        if self.unit == other.unit and 'DELTA' not in outputUnit:
+            var.convert(self.unit)
 
         return var
 
@@ -678,3 +721,5 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
+
+

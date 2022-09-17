@@ -30,7 +30,6 @@ class test(unittest.TestCase):
         n = 100
         x = np.linspace(0, 100, n)
         y = a * x + b
-        # y += 10 * np.random.rand(n)
 
         x = variable(x, 'm')
         y = variable(y, 'C')
@@ -40,7 +39,7 @@ class test(unittest.TestCase):
         Fb = F.popt[1]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(str(Fa.unit), 'C/m')
+        self.assertEqual(str(Fa.unit), 'DELTAC/m')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
@@ -67,11 +66,11 @@ class test(unittest.TestCase):
         Fc = F.popt[2]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(str(Fa.unit), 'C/m2')
+        self.assertEqual(str(Fa.unit), 'DELTAC/m2')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
-        self.assertEqual(str(Fb.unit), 'C/m')
+        self.assertEqual(str(Fb.unit), 'DELTAC/m')
         self.assertAlmostEqual(Fb.uncert, 0)
 
         self.assertAlmostEqual(Fc.value, 15)
@@ -100,15 +99,15 @@ class test(unittest.TestCase):
         Fd = F.popt[3]
 
         self.assertAlmostEqual(Fa.value, 2)
-        self.assertEqual(str(Fa.unit), 'C/m3')
+        self.assertEqual(str(Fa.unit), 'DELTAC/m3')
         self.assertAlmostEqual(Fa.uncert, 0)
 
         self.assertAlmostEqual(Fb.value, 10)
-        self.assertEqual(str(Fb.unit), 'C/m2')
+        self.assertEqual(str(Fb.unit), 'DELTAC/m2')
         self.assertAlmostEqual(Fb.uncert, 0)
 
         self.assertAlmostEqual(Fc.value, 15)
-        self.assertEqual(str(Fc.unit), 'C/m')
+        self.assertEqual(str(Fc.unit), 'DELTAC/m')
         self.assertAlmostEqual(Fc.uncert, 0)
 
         self.assertAlmostEqual(Fd.value, 50)
@@ -116,20 +115,6 @@ class test(unittest.TestCase):
         self.assertAlmostEqual(Fd.uncert, 0)
 
         self.assertAlmostEqual(F.r_squared, 1)
-
-    def testPolFit4(self):
-        a = 0.1
-        b = 100
-        n = 100
-        x = np.linspace(0, 100, n)
-        y = a * x + b
-
-        x = variable(x, 'm')
-        y = variable(y, 'C')
-
-        F = pol_fit(x, y, deg=1, terms=[True, False])
-        for elem in F.popt:
-            print(elem)
 
 
 if __name__ == '__main__':

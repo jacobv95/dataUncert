@@ -65,27 +65,27 @@ class test(unittest.TestCase):
     def testAdd(self):
         a = unit('L/min')
         b = unit('kg-m/L')
-        c = a + b
-        self.assertEqual(c, False)
+        cBool, cUnit = a + b
+        self.assertEqual(cBool, False)
         a = unit('L/min')
         b = unit('L/min')
-        c = a + b
-        self.assertEqual(str(c), 'L/min')
+        cBool, cUnit = a + b
+        self.assertEqual(str(cUnit), 'm3/s')
 
         a = unit('m-K/L-bar')
         b = unit('K-m/bar-L')
-        c = a + b
-        self.assertEqual(str(c), 'm-K/L-bar')
+        cBool, cUnit = a + b
+        self.assertEqual(cBool, True)
 
     def testSub(self):
         a = unit('L/min')
         b = unit('kg-m/L')
-        c = a - b
-        self.assertEqual(c, False)
+        cBool, cUnit = a - b
+        self.assertEqual(cBool, False)
         a = unit('L/min')
         b = unit('L/min')
-        c = a - b
-        self.assertEqual(str(c), 'L/min')
+        cBool, cUnit = a - b
+        self.assertEqual(str(cUnit), 'm3/s')
 
     def testConvert(self):
         a = unit('L/min')

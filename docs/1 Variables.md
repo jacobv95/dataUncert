@@ -32,6 +32,7 @@ The following units are known:
  - power: W
  - pressure: Pa, bar
  - Temperature: K, C, F, °C, °F (ASCII 0176)
+ - Temperature difference: DELTAK, DELTAC, DELTAF
  - time: s, min, h, yr
  - volume: m3, L
  - length: m, ly, Å

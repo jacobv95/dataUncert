@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from dataUncert.unitSystem import knownCharacters, knownPrefixes, knownUnits, baseUnit, _unitConversion
+from dataUncert.unitSystem import knownCharacters, knownPrefixes, knownUnits, baseUnit, _unitConversion, knownUnitsDict
 
 
 class unit():
@@ -10,13 +10,20 @@ class unit():
         if unitStr == '':
             unitStr = '1'
 
-        # split the unit in upper and lower
-        self.unitStr = self._formatUnit(unitStr)
+        # remove any unknown characters
+        unitStr = self._formatUnit(unitStr)
 
-        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(self.unitStr)
+        # split the unit in upper and lower
+        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(unitStr)
+
+        # create the unit string
+        self.unitStr = self._createUnitString()
 
         self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
         self._converterToSI = self.getConverter(self._SIBaseUnit)
+
+    def _createUnitString(self):
+        return self._combineUpperAndLower(self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp)
 
     @staticmethod
     def _cancleUnits(upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp):
@@ -151,6 +158,12 @@ class unit():
             return u, prefix, exponent
         upper, upperPrefix, upperExp = splitUnitExponentAndPrefix(upper)
         lower, lowerPrefix, lowerExp = splitUnitExponentAndPrefix(lower)
+
+        if len(upper + lower) > 1:
+            temp = knownUnitsDict['K']
+            upper = ['DELTA' + elem if elem in temp else elem for elem in upper]
+            lower = ['DELTA' + elem if elem in temp else elem for elem in lower]
+
         return upper, upperPrefix, upperExp, lower, lowerPrefix, lowerExp
 
     @ staticmethod
@@ -393,30 +406,68 @@ class unit():
         return self._assertEqualStatic(self.unitStr, other)
 
     def __add__(self, other):
-        if not(self._assertEqual(other)):
-            return False
-        return self
+        # test if the units are identical
+        if self._assertEqual(other):
+            return True, self._SIBaseUnit
+
+        # test if the SI base units are identical
+        if self._SIBaseUnit == other._SIBaseUnit:
+            return True, self._SIBaseUnit
+
+        # test if one is a temperature, and the other is a temperature difference
+        SIBaseUnits = [self._SIBaseUnit, other._SIBaseUnit]
+        if 'K' in SIBaseUnits and 'DELTAK' in SIBaseUnits:
+            return True, 'K'
+
+        # return false
+        return False, None
 
     def __sub__(self, other):
-        if not(self._assertEqual(other)):
-            return False
-        return self
+        # test if the units are identical
+        if self._assertEqual(other):
+            if self._SIBaseUnit == 'K':
+                return True, 'DELTA' + self.unitStr
+            return True, self._SIBaseUnit
+
+        # test if the SI base units are identical
+        if self._SIBaseUnit == other._SIBaseUnit:
+            return True, self._SIBaseUnit
+
+        # test if one is a temperature, and the other is a temperature difference
+        SIBaseUnits = [self._SIBaseUnit, other._SIBaseUnit]
+        if 'K' in SIBaseUnits and 'DELTAK' in SIBaseUnits:
+            return True, 'K'
+
+        # return false
+        return False, None
 
     def __mul__(self, other):
         return unit._multiply(self.unitStr, other.unitStr)
 
     def __truediv__(self, other):
 
-        other = self._combineUpperAndLower(
-            upper=other.lower,
-            upperPrefix=other.lowerPrefix,
-            upperExp=other.lowerExp,
-            lower=other.upper,
-            lowerPrefix=other.upperPrefix,
-            lowerExp=other.upperExp
+        if self._SIBaseUnit == 'K':
+            a = 'DELTA' + self.unitStr
+        else:
+            a = self.unitStr
+
+        if other._SIBaseUnit == 'K':
+            b = 'DELTA' + other.unitStr
+        else:
+            b = other.unitStr
+
+        bUpper, bUpperPrefix, bUpperExp, bLower, bLowerPrefix, bLowerExp = unit._getLists(b)
+
+        b = self._combineUpperAndLower(
+            upper=bLower,
+            upperPrefix=bLowerPrefix,
+            upperExp=bLowerExp,
+            lower=bUpper,
+            lowerPrefix=bUpperPrefix,
+            lowerExp=bUpperExp
         )
 
-        return unit._multiply(self.unitStr, other)
+        return unit._multiply(a, b)
 
     def __pow__(self, power):
 
@@ -521,3 +572,26 @@ class unit():
                     out *= conv
 
         return out
+
+    def convert(self, unitStr):
+        if unitStr == '':
+            unitStr = '1'
+
+        # remove any unknown characters
+        unitStr = self._formatUnit(unitStr)
+
+        # split the unit in upper and lower
+        self.upper, self.upperPrefix, self.upperExp, self.lower, self.lowerPrefix, self.lowerExp = self._getLists(unitStr)
+
+        # create the unit string
+        self.unitStr = self._createUnitString()
+
+        self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
+        self._converterToSI = self.getConverter(self._SIBaseUnit)
+
+
+if __name__ == '__main__':
+    a = unit('C')
+    b = unit('C')
+    c = a - b
+    print(c)
