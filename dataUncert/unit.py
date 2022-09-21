@@ -590,8 +590,3 @@ class unit():
         self._converterToSI = self.getConverter(self._SIBaseUnit)
 
 
-if __name__ == '__main__':
-    a = unit('C')
-    b = unit('C')
-    c = a - b
-    print(c)

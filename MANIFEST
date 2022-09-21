@@ -5,6 +5,7 @@ dataUncert\__init__.py
 dataUncert\constant.py
 dataUncert\fit.py
 dataUncert\profileDataUncert.py
+dataUncert\prop.py
 dataUncert\readData.py
 dataUncert\stackOverflowODR.py
 dataUncert\testDataUncert.py

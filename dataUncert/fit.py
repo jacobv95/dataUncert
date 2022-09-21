@@ -549,21 +549,3 @@ class logistic_100_fit(_fit):
         out += f'\quad x_0={x0}$'
         return out
 
-
-if __name__ == "__main__":
-    a = 2
-    b = 10
-    n = 100
-    x = np.linspace(0, 100, n)
-    y = a * x + b
-
-    x = variable(x, 'm')
-    y = variable(y, 'C')
-
-    F = lin_fit(x, y)
-    Fa = F.popt[0]
-    Fb = F.popt[1]
-
-    x = variable(100, 'm')
-    y = Fa * x + Fb
-    print(y)
