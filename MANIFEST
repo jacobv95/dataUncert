@@ -10,6 +10,7 @@ dataUncert\readData.py
 dataUncert\stackOverflowODR.py
 dataUncert\testDataUncert.py
 dataUncert\testFit.py
+dataUncert\testProp.py
 dataUncert\testReadData.py
 dataUncert\testUnit.py
 dataUncert\testVariable.py

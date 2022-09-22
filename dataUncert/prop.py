@@ -63,42 +63,57 @@ def prop_INCOMP(property, fluid, T, P, C):
     # determine the value of the property
     val = getattr(state, property[0])()
 
-    # get the gradient d(property)/dT
-    try:
-        gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
-    except ValueError:
-        dT = 1  # K
-        state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
-        T1 = getattr(state, property[0])()
-        state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
-        T2 = getattr(state, property[0])()
-        gradT = (T1 - T2) / (2 * dT)
-
-    # get the gradient d(property)/dP
-    try:
-        gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
-    except ValueError:
-        dP = 1  # Pa
-        state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
-        P1 = getattr(state, property[0])()
-        state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
-        P2 = getattr(state, property[0])()
-        gradP = (P1 - P2) / (2 * dP)
-
-    # get the gradient d(property)/dC - this is done using a finite difference
-    dC = 0.001  # %
-    state.set_mass_fractions([C.value + dC])
-    state.update(CoolProp.PT_INPUTS, P.value, T.value)
-    C1 = getattr(state, property[0])()
-    state.set_mass_fractions([C.value - dC])
-    state.update(CoolProp.PT_INPUTS, P.value, T.value)
-    C2 = getattr(state, property[0])()
-    gradC = (C1 - C2) / (2 * dC)
-
     # create the new variable
     var = variable(val, property[2])
-    var._addDependents([T, P, C], [gradT, gradP, gradC])
-    var._calculateUncertanty()
+
+    # determine the uncertanty of the variable based on the uncertanty of the temperature, pressure and concentration
+    vars = []
+    grads = []
+    if T.uncert != 0:
+        # get the gradient d(property)/dT
+        try:
+            gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
+        except ValueError:
+            dT = 1  # K
+            state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
+            T1 = getattr(state, property[0])()
+            state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
+            T2 = getattr(state, property[0])()
+            gradT = (T1 - T2) / (2 * dT)
+
+        vars.append(T)
+        grads.append(gradT)
+
+    if P.uncert != 0:
+        # get the gradient d(property)/dP
+        try:
+            gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
+        except ValueError:
+            dP = 1  # Pa
+            state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
+            P1 = getattr(state, property[0])()
+            state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
+            P2 = getattr(state, property[0])()
+            gradP = (P1 - P2) / (2 * dP)
+        vars.append(P)
+        grads.append(gradP)
+
+    if C.uncert != 0:
+        # get the gradient d(property)/dC - this is done using a finite difference
+        dC = 0.001  # %
+        state.set_mass_fractions([C.value + dC])
+        state.update(CoolProp.PT_INPUTS, P.value, T.value)
+        C1 = getattr(state, property[0])()
+        state.set_mass_fractions([C.value - dC])
+        state.update(CoolProp.PT_INPUTS, P.value, T.value)
+        C2 = getattr(state, property[0])()
+        gradC = (C1 - C2) / (2 * dC)
+        vars.append(C)
+        grads.append(gradC)
+
+    if vars:
+        var._addDependents(vars, grads)
+        var._calculateUncertanty()
 
     return var
 
@@ -112,33 +127,45 @@ def prop_HEOS(property, fluid, T, P, _):
 
     # determien the value of the property
     val = getattr(state, property[0])()
-
-    # get the gradient d(property)/dT
-    try:
-        gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
-    except ValueError:
-        dT = 1  # K
-        state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
-        T1 = getattr(state, property[0])()
-        state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
-        T2 = getattr(state, property[0])()
-        gradT = (T1 - T2) / (2 * dT)
-
-    # get the gradient d(property)/dP
-    try:
-        gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
-    except ValueError:
-        dP = 1  # Pa
-        state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
-        P1 = getattr(state, property[0])()
-        state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
-        P2 = getattr(state, property[0])()
-        gradP = (P1 - P2) / (2 * dT)
-
     # create the new variable
+
     var = variable(val, property[2])
-    var._addDependents([T, P], [gradT, gradP])
-    var._calculateUncertanty()
+
+    # determine the uncertanty of the variable based on the uncertanty of the temperature and pressure
+    grads = []
+    vars = []
+    if T.uncert != 0:
+        # get the gradient d(property)/dT
+        try:
+            gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
+        except ValueError:
+            dT = 1  # K
+            state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
+            T1 = getattr(state, property[0])()
+            state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
+            T2 = getattr(state, property[0])()
+            gradT = (T1 - T2) / (2 * dT)
+        grads.append(gradT)
+        vars.append(T)
+
+    if P.uncert != 0:
+        # get the gradient d(property)/dP
+        try:
+            gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
+        except ValueError:
+            dP = 1  # Pa
+            state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
+            P1 = getattr(state, property[0])()
+            state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
+            P2 = getattr(state, property[0])()
+            gradP = (P1 - P2) / (2 * dT)
+
+        vars.append(P)
+        grads.append(gradP)
+
+    if vars:
+        var._addDependents(vars, grads)
+        var._calculateUncertanty()
 
     return var
 

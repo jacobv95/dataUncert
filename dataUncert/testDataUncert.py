@@ -5,6 +5,7 @@ from testFit import test as testFit
 from testReadData import test as testReadData
 from testUnit import test as testUnit
 from testVariable import test as testVariable
+from testProp import test as testProp
 
 
 def main():
@@ -12,7 +13,8 @@ def main():
         testFit,
         testReadData,
         testUnit,
-        testVariable
+        testVariable,
+        testProp
     ]
 
     suites = []

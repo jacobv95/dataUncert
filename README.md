@@ -18,11 +18,12 @@ These computations quickly becomes very difficult for more complicated equations
  - Perform regression where the regression constants are affected by the uncertanty of the data
 
 ## Documentation
-The documentation is split in to 4 parts:
+The documentation is split in to 5 parts:
  - 1 variables
  - 2 Constants
  - 3 Importing data
  - 4 Fitting
+ - 5 Prop
 
 See the folder "docs" for the documentation
 
