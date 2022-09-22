@@ -319,6 +319,7 @@ class unit():
         # return the splitted version of the base unit
         upper = [unit._splitCompositeUnit(knownUnits[elem][0]) for elem in upper]
         lower = [unit._splitCompositeUnit(knownUnits[elem][0]) for elem in lower]
+
         # combine the upper and lower
         tmpUpper = [elem[0] for elem in upper] + [elem[1] for elem in lower]
         tmpLower = [elem[1] for elem in upper] + [elem[0] for elem in lower]
@@ -334,7 +335,9 @@ class unit():
         tmpLowerExp = [elem[1]for elem in tmpLower]
 
         upperSet = list(set(upper))
+        upperSet.sort()
         lowerSet = list(set(lower))
+        lowerSet.sort()
         lenUpperSet = len(upperSet)
         lenLowerSet = len(lowerSet)
         upperExp = [0] * lenUpperSet
@@ -588,5 +591,4 @@ class unit():
 
         self._SIBaseUnit = self._getSIBaseUnit(self.upper, self.upperExp, self.lower, self.lowerExp)
         self._converterToSI = self.getConverter(self._SIBaseUnit)
-
 
