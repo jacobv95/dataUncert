@@ -54,7 +54,8 @@ class _unitConversion():
 
 baseUnit = {
     '1': _unitConversion(1),
-    '': _unitConversion(1)
+    '': _unitConversion(1),
+    '%': _unitConversion(1e-2)
 }
 
 force = {

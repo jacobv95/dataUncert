@@ -6,31 +6,35 @@ class test(unittest.TestCase):
 
     def testAll(self):
 
-        knownFluids = ['water', 'MEG']
-        knownProperties = ['rho', 'cp', 'mu']
-        concentrations = [None, variable(0.528, '', 0.01)]
         T = variable(30, 'C', 1)
         P = variable(1, 'bar', 0.01)
 
-        ListOfEESvalues = [
-            [995.6488633254202760, 4.179823274031803420, 0.000797345918032034399],
-            [1062.741908437654730, 3.307943137955305390, 0.00293852572194204309]
-        ]
+        rho = prop('rho', 'water', T = T, P = P)       
+        self.assertAlmostEqual(rho.value, 995.6488633254202760)
+        self.assertAlmostEqual(rho.uncert, 0.302056032124829521, 5)
+        
+        
+        cp = prop('cp', 'water', T = T, P = P)       
+        self.assertAlmostEqual(cp.value, 4179.823274031785670)
+        self.assertAlmostEqual(cp.uncert, 0.197230658613685986, 5)
+        
+        mu = prop('mu', 'water', T = T, P = P)       
+        self.assertAlmostEqual(mu.value, 0.000797221826825984337)
+        self.assertAlmostEqual(mu.uncert, 0.0000169744084027323477, 5)
+        
+        C = variable(50,'%', 2)
+        rho = prop('rho', 'MEG', T = T, P = P, C=C)       
+        self.assertAlmostEqual(rho.value, 1059.388204247423450)
+        self.assertAlmostEqual(rho.uncert, 2.488866117279996050, 5)
+        
+        cp = prop('cp', 'MEG', T = T, P = P, C=C)       
+        self.assertAlmostEqual(cp.value, 3363.55043611633498)
+        self.assertAlmostEqual(cp.uncert, 39.8428214910969325, 5)
 
-        ListOfEESuncerts = [
-            [0.305326939921925818, 0.000335853428220185829, 0.0000169611257895675437],
-            [1.322901611941038380, 0.0206790990882194932, 0.000113742449145449859]
-        ]
-
-        EESunits = ['kg/m3', 'kJ/kg-K', 'kg/m-s']
-
-        for fluid, concentration, EESvalues, EESuncerts in zip(knownFluids, concentrations, ListOfEESvalues, ListOfEESuncerts):
-            for property, EESvalue, EESunit, EESuncert in zip(knownProperties, EESvalues, EESunits, EESuncerts):
-                var = prop(property, fluid, T, P, concentration)
-                var.convert(EESunit)
-                self.assertAlmostEqual(var.value, EESvalue, 6)
-                self.assertAlmostEqual(var.uncert, EESuncert, 2)
-
+        mu = prop('mu', 'MEG', T = T, P = P, C=C)       
+        self.assertAlmostEqual(mu.value, 0.00272865313721519455)
+        self.assertAlmostEqual(mu.uncert, 0.000163091267222627309, 5)
+        
 
 if __name__ == '__main__':
     unittest.main()

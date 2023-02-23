@@ -1,8 +1,6 @@
 # Prop
 
-
-A wrapper has been built around the CoolProp library. The wrapper creates a dataUncert variable of the property and calculates the uncertanties.
-
+A wrapper has been built around the pyfluids library. The wrapper creates a dataUncert variable of the property and calculates the uncertanties.
 
 ```
 from dataUncert import variable, prop
@@ -14,9 +12,9 @@ print(mu)
 ```
 
 The following fluids are included in this project
-
  - water
  - MEG (ethylene-glycol water)
+ - Air
 
 The following properties are included in this project
  - 'rho' (density)

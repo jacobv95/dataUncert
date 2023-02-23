@@ -1,182 +1,301 @@
-import CoolProp
-from dataUncert.variable import variable
+from pyfluids import Fluid, FluidsList, Input, HumidAir, InputHumidAir
+from dataUncert import variable, unit
 
+dx = 0.00001
 
-def prop(property, fluid, T, P, C=None):
+def prop(property, fluid, **kwargs):
 
-    # check the property
-    if property in knownProperties:
-        property = knownProperties[property]
+    if not fluid in knownFluids:
+        raise ValueError(f"The fluid {fluid} is unknown")
+
+    method = knownFluids[fluid][0]
+        
+    return method(property, kwargs)
+
+def isAllArgumentsUsed(arguments: dict):
+    if (len(arguments.keys()) > 0):
+        raise ValueError(f'The inputs {list(arguments.keys())} are not appropriate for this fluid')
+
+def findArgument(arguments : dict, parameterName, unitStr, raiseError = True):
+
+    desiredSIBaseUnit = unit.unit(unitStr)._SIBaseUnit
+    
+    parameter = None
+    if  parameterName in arguments.keys():
+        parameter = arguments[parameterName]
+        del arguments[parameterName]
     else:
-        raise ValueError(f'The property "{property}" is unknown')
+        if raiseError:
+            raise ValueError(f'Could not find an arugment matching that of a {parameterName}')
+    if not parameter is None:
+        if parameter._unitObject._SIBaseUnit != desiredSIBaseUnit:
+            raise ValueError(f'The input {parameterName} did not have to correct unit of {unitStr}')
 
-    # check the fluid
-    if fluid not in knownFluids:
-        raise ValueError(f'The fluid "{fluid}" is unknown')
+    return arguments, parameter
 
-    # check the pressure
-    if not isinstance(P, variable):
-        raise ValueError('The pressure has to be a variable')
+def differentialsBrine(fluid : Fluid, fluidName,  property, C, parameters):
 
-    # check the temperature
-    if not isinstance(T, variable):
-        raise ValueError('The temperature has to be a variable')
-
-    # check the concentration
-    if not C is None:
-        if not isinstance(C, variable):
-            raise ValueError('The concentration has to be a variable')
-        if not C.unit == '1':
-            raise ValueError('The concentration has to be unitless')
-        if not (0 < C.value < 1):
-            raise ValueError('The concentration has to be within 0 and 1')
-
-    # store the units of the temperature and the pressure
-    unitT = T.unit
-    unitP = P.unit
-
-    # convert to SI if necessary
-    if unitT != 'K':
-        T.convert('K')
-    if unitP != 'Pa':
-        P.convert('Pa')
-
-    var = knownFluids[fluid](property, fluid, T, P, C)
-
-    # convert back from SI if necessary
-    if unitT != 'K':
-        T.convert(unitT)
-    if unitP != 'Pa':
-        P.convert(unitP)
-
-    return var
+    vars, grads = differentials(fluid, property, parameters)
+    
+    if (C.uncert == 0):
+        return  vars, grads
 
 
-def prop_INCOMP(property, fluid, T, P, C):
-    # create a state
-    state = CoolProp.AbstractState("INCOMP", fluid)
+    y1 = getattr(Fluid(fluidName,C.value*(1 + dx)).with_state(*fluid._inputs), knownProperties[property])
+    y2 = getattr(Fluid(fluidName,C.value*(1 - dx)).with_state(*fluid._inputs), knownProperties[property])
 
-    # update the state with the concentration, pressure and temperature
-    state.set_mass_fractions([C.value])
-    state.update(CoolProp.PT_INPUTS, P.value, T.value)
+    grads.append((y2-y1) / (2*dx * C.value))
+    vars.append(C)
+    return vars, grads
 
-    # determine the value of the property
-    val = getattr(state, property[0])()
 
-    # create the new variable
-    var = variable(val, property[2])
-
-    # determine the uncertanty of the variable based on the uncertanty of the temperature, pressure and concentration
+def differentials(fluid : Fluid, property : str, parameters):
     vars = []
+    indexes = []
+    for i, param in enumerate(parameters):
+        if param.uncert != 0:
+            indexes.append(i)
+            vars.append(param)
+    
+    
+    inputs = list(fluid._inputs)
+
+    
     grads = []
-    if T.uncert != 0:
-        # get the gradient d(property)/dT
-        try:
-            gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
-        except ValueError:
-            dT = 1  # K
-            state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
-            T1 = getattr(state, property[0])()
-            state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
-            T2 = getattr(state, property[0])()
-            gradT = (T1 - T2) / (2 * dT)
+    for i in indexes:
+        
+        i0 = inputs[i]
+        i1 = Input(i0.coolprop_key, i0.value * (1-dx))
+        i2 = Input(i0.coolprop_key, i0.value * (1+dx))
+        
+        inputs[i] = i1
+        fluid.update(*inputs)
+        y1 = getattr(fluid, knownProperties[property])
+        
+        inputs[i] = i2
+        fluid.update(*inputs)
+        y2 = getattr(fluid, knownProperties[property])
+        
+        inputs[i] = i0
+        fluid.update(*inputs)
+        
+        grads.append((y2-y1) / (2*dx*i0.value))
+    
+    return vars, grads
+    
 
-        vars.append(T)
-        grads.append(gradT)
+def outputFromParameters(scalarMethod, property, params):
+    
+    
+    if (all([elem.len() == 1 for elem in params if not elem is None])):
+        ## all inputs are scalars
+        out = scalarMethod(property, *params)
+        return out
+    
+    out = []
+    paramVecs = [None] * len(params)
+    n = None
 
-    if P.uncert != 0:
-        # get the gradient d(property)/dP
-        try:
-            gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
-        except ValueError:
-            dP = 1  # Pa
-            state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
-            P1 = getattr(state, property[0])()
-            state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
-            P2 = getattr(state, property[0])()
-            gradP = (P1 - P2) / (2 * dP)
-        vars.append(P)
-        grads.append(gradP)
+    for i, param in enumerate(params):
+        if not param is None:
+            if param.len() != 1:
+                paramVecs[i] = [variable(val, param.unit, unc) for val,unc in zip(param.value, param.uncert)]
 
-    if C.uncert != 0:
-        # get the gradient d(property)/dC - this is done using a finite difference
-        dC = 0.001  # %
-        state.set_mass_fractions([C.value + dC])
-        state.update(CoolProp.PT_INPUTS, P.value, T.value)
-        C1 = getattr(state, property[0])()
-        state.set_mass_fractions([C.value - dC])
-        state.update(CoolProp.PT_INPUTS, P.value, T.value)
-        C2 = getattr(state, property[0])()
-        gradC = (C1 - C2) / (2 * dC)
-        vars.append(C)
-        grads.append(gradC)
+    for i in range(len(paramVecs)):
+        if not paramVecs[i] is None:
+            n = len(paramVecs[i])
+    
+    for i in range(len(paramVecs)):
+        if paramVecs[i] is None:
+            paramVecs[i] = [params[i]] * n
+    
+    for i in range(n):
+        params = [elem[i] for elem in paramVecs]
+        out.append(scalarMethod(property, *params))
+    
+    return variable([elem.value for elem in out], out[0].unit, [elem.uncert for elem in out])
 
-    if vars:
-        var._addDependents(vars, grads)
-        var._calculateUncertanty()
+def propWater(property, arguments):
+    
+    ## find the appropriate arguments from the list
+    arguments, T = findArgument(arguments, 'T', 'K')
+    arguments, P = findArgument(arguments, 'P', 'Pa')
+    isAllArgumentsUsed(arguments)
+    
+    ## store the default unit of the arguments
+    Tunit = T.unit
+    Punit = P.unit
+    
+    ## convert in to the units of pyfluids
+    T.convert('C')
+    P.convert('Pa')
+    
+    out = outputFromParameters(propWaterScalar, property, [T,P])
+        
+    ## convert the arguments back in to the original units
+    T.convert(Tunit)
+    P.convert(Punit)
+    
+    return out
 
+def propWaterScalar(property, T,P):
+    ## update the fluid state
+    fluid = Fluid(FluidsList.Water)
+    fluid = fluid.with_state(Input.temperature(T.value), Input.pressure(P.value))
+    
+    ## create a variable from the fluid
+    var = getattr(fluid, knownProperties[property])
+    var = variable(var, propertyUnits[property])
+    vars, grads = differentials(fluid, property, [T, P])
+    var._addDependents(vars, grads)
+    var._calculateUncertanty()
+    
+    ## return the variable
     return var
+   
+    
+def propMEG(property, arguments):
+ 
+    
+    ## find the appropriate arguments from the list
+    arguments, T = findArgument(arguments, 'T', 'C')
+    arguments, P = findArgument(arguments, 'P', 'Pa')
+    arguments, C = findArgument(arguments, 'C', '%')
+    isAllArgumentsUsed(arguments)
+
+    ## store the default unit of the arguments
+    Tunit = T.unit
+    Punit = P.unit
+    
+    ## convert in to the units of pyfluids
+    T.convert('C')
+    P.convert('Pa')
+
+    out = outputFromParameters(propMEGScalar, property, [T,P,C])
+
+    ## convert the arguments back in to the original units
+    T.convert(Tunit)
+    P.convert(Punit)
+
+    return out
+
+def propMEGScalar(property, T,P,C):
+    fluid = Fluid(FluidsList.MEG, C.value)    
+    
+    ## store the default unit of the arguments
+    Tunit = T.unit
+    Punit = P.unit
+    
+    ## convert in to the units of pyfluids
+    T.convert('C')
+    P.convert('Pa')
+    
+    ## update the fluid state
+    fluid = fluid.with_state(Input.temperature(T.value), Input.pressure(P.value))
+    
+    ## create a variable from the fluid
+    var = getattr(fluid, knownProperties[property])
+    var = variable(var, propertyUnits[property])
+    vars, grads = differentialsBrine(fluid, FluidsList.MEG, property, C, [T, P])
+    var._addDependents(vars, grads)
+    var._calculateUncertanty()
+    
+    ## convert the arguments back in to the original units
+    T.convert(Tunit)
+    P.convert(Punit)
+    
+    ## return the variable
+    return var
+    
+
+def propHumidAir(property, arguments):
 
 
-def prop_HEOS(property, fluid, T, P, _):
-    # create the state
-    state = CoolProp.AbstractState("HEOS", fluid)
+    arguments, H = findArgument(arguments, 'h', 'm', raiseError=False)
+    arguments, P = findArgument(arguments, 'P', 'Pa', raiseError=False)
+    arguments, T = findArgument(arguments, 'T', 'C', raiseError=True)
+    arguments, Rh = findArgument(arguments, 'Rh', '', raiseError=True)
+    isAllArgumentsUsed(arguments)
 
-    # update the state using the temperature and the pressure
-    state.update(CoolProp.PT_INPUTS, P.value, T.value)
+    if H is None and P is None:
+        raise ValueError('You have to specify either an altitude or a pressure')
+    if not (H is None) and not (P is None):
+        raise ValueError('You cannot specify both an altitude and a pressure')
+    
+    vars = [T,Rh]
+    if not (H is None):
+        vars.append(H)
+    else:
+        vars.append(P)
+    
+    varUnits = [elem.unit for elem in vars]
+    
+    desiredUnits = ['C','']
+    if not (H is None):
+        desiredUnits.append('m')
+    else:
+        desiredUnits.append('Pa')
+        
+    for Var, desiredUnit in zip(vars, desiredUnits):
+        Var.convert(desiredUnit)
+    
+    out = outputFromParameters(propHumidAirScalar, property, [T, Rh, H, P])
+    
+    for Var, varUnit in zip(vars, varUnits):
+        Var.convert(varUnit)
+    
+    return out
 
-    # determien the value of the property
-    val = getattr(state, property[0])()
-    # create the new variable
-
-    var = variable(val, property[2])
-
-    # determine the uncertanty of the variable based on the uncertanty of the temperature and pressure
-    grads = []
+def propHumidAirScalar(property, T,Rh,H = None, P = None):
+    
+    inputs = []
+    inputs.append(InputHumidAir.temperature(T.value))
+    inputs.append(InputHumidAir.relative_humidity(Rh.value))
+    if not (H is None):
+        inputs.append(InputHumidAir.altitude(H.value))
+    else:
+        inputs.append(InputHumidAir.pressure(P.value))
+    
     vars = []
-    if T.uncert != 0:
-        # get the gradient d(property)/dT
-        try:
-            gradT = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iT, CoolProp.iP)
-        except ValueError:
-            dT = 1  # K
-            state.update(CoolProp.PT_INPUTS, P.value, T.value + dT)
-            T1 = getattr(state, property[0])()
-            state.update(CoolProp.PT_INPUTS, P.value, T.value - dT)
-            T2 = getattr(state, property[0])()
-            gradT = (T1 - T2) / (2 * dT)
-        grads.append(gradT)
-        vars.append(T)
-
-    if P.uncert != 0:
-        # get the gradient d(property)/dP
-        try:
-            gradP = state.first_partial_deriv(getattr(CoolProp, property[1]), CoolProp.iP, CoolProp.iT)
-        except ValueError:
-            dP = 1  # Pa
-            state.update(CoolProp.PT_INPUTS, P.value + dP, T.value)
-            P1 = getattr(state, property[0])()
-            state.update(CoolProp.PT_INPUTS, P.value - dP, T.value)
-            P2 = getattr(state, property[0])()
-            gradP = (P1 - P2) / (2 * dT)
-
+    vars.append(T)
+    vars.append(Rh)
+    if not (H is None):
+        vars.append(H)
+    else:
         vars.append(P)
-        grads.append(gradP)
+        
+    fluid = HumidAir()    
+    fluid = fluid.with_state(*inputs)
+    
+    ## create a variable from the fluid
+    var = getattr(fluid, knownProperties[property])
+    var = variable(var, propertyUnits[property])
+    Vars, grads = differentials(fluid, property, vars)
+    var._addDependents(Vars, grads)
+    var._calculateUncertanty()
+    
+    return var 
 
-    if vars:
-        var._addDependents(vars, grads)
-        var._calculateUncertanty()
-
-    return var
-
+propertyUnits = {
+    'rho': 'kg/m3',
+    'cp': 'J/kg-K',
+    'mu': 'Pa-s'
+}
 
 knownProperties = {
-    'rho': ['rhomass', 'iDmass', 'kg/m3'],
-    'cp': ['cpmass', 'iCpmass', 'J/kg-K'],
-    'mu': ['viscosity', 'iviscosity', 'Pa-s']
+    'rho' : "density",
+    'cp' : "specific_heat",
+    'mu': "dynamic_viscosity"
 }
 
 knownFluids = {
-    'water': prop_HEOS,
-    'MEG': prop_INCOMP
+    'water': [propWater],
+    'MEG': [propMEG],
+    'air': [propHumidAir]
 }
+
+
+if __name__ == '__main__':
+    rho = prop('rho', 'air', P = variable(1,'bar'), T = variable([30,40,50,60,70,80],'C', [3,4,5,6,7,8]), Rh = variable(50,'%'))
+    
+    

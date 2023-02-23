@@ -25,7 +25,7 @@ The units in the denominator or numerator are sperated using a hyphen (-)
 
 
 The following units are known:
- - unitless: 1, ''
+ - unitless: 1, '', %
  - force: N
  - mass: g
  - Energy: J
