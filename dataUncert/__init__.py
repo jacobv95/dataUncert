@@ -87,3 +87,4 @@ from dataUncert.fit import dummy_fit, pol_fit, lin_fit, exp_fit, pow_fit, logist
 from dataUncert.readData import readData
 import dataUncert.constant as constant
 from dataUncert.prop import prop
+from dataUncert.solve import solve

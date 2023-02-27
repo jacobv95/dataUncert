@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dataUncert
-Version: 6.5
+Version: 6.6
 Summary: import data from .xlsx and .xls files. Use the data to perform calculation with uncertanties
 Home-page: https://github.com/jacobv95/dataProcessing
 Download-URL: https://github.com/jacobv95/dataUncert/archive/refs/tags/v2.0.tar.gz

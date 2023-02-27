@@ -404,19 +404,12 @@ class variable():
         val = self._value ** other.value
         outputUnit = self._unitObject ** other.value
 
-        def gradSelf(valSelf, valOther, uncertSelf):
-            if uncertSelf != 0:
-                return valOther * valSelf ** (valOther - 1)
-            else:
-                return 0
-
+        gradSelf = other._value * self._value ** (other._value - 1)
         def gradOther(valSelf, valOther, uncertOther):
             if uncertOther != 0:
                 return valSelf ** valOther * np.log(valSelf)
             else:
                 return 0
-
-        gradSelf = np.vectorize(gradSelf, otypes=[float])(self._value, other._value, self._uncert)
         gradOther = np.vectorize(gradOther, otypes=[float])(self._value, other._value, other._uncert)
 
         grad = [gradSelf, gradOther]
@@ -598,8 +591,12 @@ class variable():
             raise ValueError(f'You cannot compare {self} and {other} as they do not have the same length')
 
     def __lt__(self, other):
+        if not isinstance(other, variable):
+            return self < variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value < other.value
+        elif self.len() == 1:
             return list(self.value < other.value)
         elif other.len() == 1:
             return list(self.value < other.value)
@@ -608,8 +605,12 @@ class variable():
             return [elemA < elemB for elemA, elemB in zip(self.value, other.value)]
 
     def __le__(self, other):
+        if not isinstance(other, variable):
+            return self <= variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value <= other.value
+        elif self.len() == 1:
             return list(self.value <= other.value)
         elif other.len() == 1:
             return list(self.value <= other.value)
@@ -618,8 +619,12 @@ class variable():
             return [elemA <= elemB for elemA, elemB in zip(self.value, other.value)]
 
     def __gt__(self, other):
+        if not isinstance(other, variable):
+            return self > variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value > other.value
+        elif self.len() == 1:
             return list(self.value > other.value)
         elif other.len() == 1:
             return list(self.value > other.value)
@@ -628,8 +633,12 @@ class variable():
             return [elemA > elemB for elemA, elemB in zip(self.value, other.value)]
 
     def __ge__(self, other):
+        if not isinstance(other, variable):
+            return self >= variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value >= other.value
+        elif self.len() == 1:
             return list(self.value >= other.value)
         elif other.len() == 1:
             return list(self.value >= other.value)
@@ -638,8 +647,12 @@ class variable():
             return [elemA >= elemB for elemA, elemB in zip(self.value, other.value)]
 
     def __eq__(self, other):
+        if not isinstance(other, variable):
+            return self == variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value == other.value
+        elif self.len() == 1:
             return list(self.value == other.value)
         elif other.len() == 1:
             return list(self.value == other.value)
@@ -648,8 +661,12 @@ class variable():
             return [elemA == elemB for elemA, elemB in zip(self.value, other.value)]
 
     def __ne__(self, other):
+        if not isinstance(other, variable):
+            return self != variable(other, self.unit)
         self._compareUnits(other)
-        if self.len() == 1:
+        if self.len() == 1 and other.len() == 1:
+            return self.value != other.value
+        elif self.len() == 1:
             return list(self.value != other.value)
         elif other.len() == 1:
             return list(self.value != other.value)

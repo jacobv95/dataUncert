@@ -6,15 +6,16 @@ from testReadData import test as testReadData
 from testUnit import test as testUnit
 from testVariable import test as testVariable
 from testProp import test as testProp
-
+from testSolve import test as testSolve
 
 def main():
     tests = [
         testFit,
         testReadData,
-        testUnit,
+        testUnit, 
         testVariable,
-        testProp
+        testProp,
+        testSolve
     ]
 
     suites = []

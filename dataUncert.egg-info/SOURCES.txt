@@ -8,11 +8,13 @@ dataUncert/fit.py
 dataUncert/profileDataUncert.py
 dataUncert/prop.py
 dataUncert/readData.py
+dataUncert/solve.py
 dataUncert/stackOverflowODR.py
 dataUncert/testDataUncert.py
 dataUncert/testFit.py
 dataUncert/testProp.py
 dataUncert/testReadData.py
+dataUncert/testSolve.py
 dataUncert/testUnit.py
 dataUncert/testVariable.py
 dataUncert/unit.py
