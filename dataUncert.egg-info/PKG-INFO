@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: dataUncert
+Version: 6.5
+Summary: import data from .xlsx and .xls files. Use the data to perform calculation with uncertanties
+Home-page: https://github.com/jacobv95/dataProcessing
+Download-URL: https://github.com/jacobv95/dataUncert/archive/refs/tags/v2.0.tar.gz
+Author: Jacob Vestergaard
+Author-email: jacobvestergaard95@gmail.com
+License: MIT
+Keywords: python,data processing,uncertanty
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+License-File: LICENSE.txt
