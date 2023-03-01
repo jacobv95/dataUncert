@@ -6,7 +6,7 @@ from random import uniform
 from dataUncert.variable import variable
 
 
-class test(unittest.TestCase):
+class test(unittest.TestCase): 
 
     def testSingleNumber(self):
         A = variable(1.3, 'm')
@@ -1260,27 +1260,27 @@ class test(unittest.TestCase):
         b = variable(2, 'C')
         with self.assertRaises(Exception) as context:
             c = a < b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             c = a <= b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             c = a > b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             c = a >= b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             c = a == b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         with self.assertRaises(Exception) as context:
             c = a != b
-        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same unit" in str(context.exception))
+        self.assertTrue("You cannot compare 1 [m] and 2 [C] as they do not have the same SI base unit" in str(context.exception))
 
         a = variable([1, 2, 3], 'm')
         b = variable([2, 3, 4], 'm')
@@ -1290,6 +1290,16 @@ class test(unittest.TestCase):
         self.assertEqual(a >= b, [False, False, False])
         self.assertEqual(a == b, [False, False, False])
         self.assertEqual(a != b, [True, True, True])
+        
+        
+        a = variable(10,'L/min')
+        b = variable(1, 'm3/h')
+        self.assertEqual(a>b, False)
+        self.assertEqual(a<b, True)
+        self.assertEqual(a>=b, False)
+        self.assertEqual(a<=b, True)
+        self.assertEqual(a==b, False)
+        self.assertEqual(a!=b, True)
 
 
 if __name__ == '__main__':

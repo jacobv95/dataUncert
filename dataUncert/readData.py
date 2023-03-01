@@ -90,7 +90,7 @@ class _readData():
                 return [elem.value for elem in sheet.col(col)]
 
         elif extension == '.xlsx':
-            self.wb = openpyxl.load_workbook(xlFile)
+            self.wb = openpyxl.load_workbook(xlFile, data_only=True)
             self.sheets = [self.wb[elem] for elem in self.wb.sheetnames]
 
             def readCell(sheet, row, col):

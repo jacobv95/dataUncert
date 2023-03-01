@@ -6,7 +6,7 @@ from dataUncert import variable
 pr = cProfile.Profile()
 pr.enable()
 
-for _ in range(100):
+for _ in range(1000):
 
     c = variable(4.182, 'J/kg-K', 130)
     rho = variable(1000, 'kg/m3', 0.01)

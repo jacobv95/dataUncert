@@ -582,9 +582,6 @@ class variable():
             return NotImplemented
         return HANDLED_FUNCTIONS[func](*args, **kwargs)
 
-    def _compareUnits(self, other):
-        if not self._unitObject._assertEqual(other._unitObject):
-            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same unit')
 
     def _compareLengths(self, other):
         if self.len() != other.len():
@@ -593,86 +590,163 @@ class variable():
     def __lt__(self, other):
         if not isinstance(other, variable):
             return self < variable(other, self.unit)
-        self._compareUnits(other)
+
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+
         if self.len() == 1 and other.len() == 1:
-            return self.value < other.value
+            out =  self.value < other.value
         elif self.len() == 1:
-            return list(self.value < other.value)
+            out = list(self.value < other.value)
         elif other.len() == 1:
-            return list(self.value < other.value)
+            out = list(self.value < other.value)
         else:
             self._compareLengths(other)
-            return [elemA < elemB for elemA, elemB in zip(self.value, other.value)]
+            out = [elemA < elemB for elemA, elemB in zip(self.value, other.value)]
+        
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
 
     def __le__(self, other):
         if not isinstance(other, variable):
             return self <= variable(other, self.unit)
-        self._compareUnits(other)
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+        
         if self.len() == 1 and other.len() == 1:
-            return self.value <= other.value
+            out = self.value <= other.value
         elif self.len() == 1:
-            return list(self.value <= other.value)
+            out = list(self.value <= other.value)
         elif other.len() == 1:
-            return list(self.value <= other.value)
+            out = list(self.value <= other.value)
         else:
             self._compareLengths(other)
-            return [elemA <= elemB for elemA, elemB in zip(self.value, other.value)]
+            out = [elemA <= elemB for elemA, elemB in zip(self.value, other.value)]
 
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
+    
     def __gt__(self, other):
         if not isinstance(other, variable):
             return self > variable(other, self.unit)
-        self._compareUnits(other)
+
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+
         if self.len() == 1 and other.len() == 1:
-            return self.value > other.value
+            out =  self.value > other.value
         elif self.len() == 1:
-            return list(self.value > other.value)
+            out =  list(self.value > other.value)
         elif other.len() == 1:
-            return list(self.value > other.value)
+            out =  list(self.value > other.value)
         else:
             self._compareLengths(other)
-            return [elemA > elemB for elemA, elemB in zip(self.value, other.value)]
-
+            out =  [elemA > elemB for elemA, elemB in zip(self.value, other.value)]
+        
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
+   
     def __ge__(self, other):
         if not isinstance(other, variable):
             return self >= variable(other, self.unit)
-        self._compareUnits(other)
+
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+
         if self.len() == 1 and other.len() == 1:
-            return self.value >= other.value
+            out =  self.value >= other.value
         elif self.len() == 1:
-            return list(self.value >= other.value)
+            out =  list(self.value >= other.value)
         elif other.len() == 1:
-            return list(self.value >= other.value)
+            out =  list(self.value >= other.value)
         else:
             self._compareLengths(other)
-            return [elemA >= elemB for elemA, elemB in zip(self.value, other.value)]
+            out =  [elemA >= elemB for elemA, elemB in zip(self.value, other.value)]
+
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
 
     def __eq__(self, other):
         if not isinstance(other, variable):
             return self == variable(other, self.unit)
-        self._compareUnits(other)
+
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+
         if self.len() == 1 and other.len() == 1:
-            return self.value == other.value
+            out =  self.value == other.value
         elif self.len() == 1:
-            return list(self.value == other.value)
+            out =  list(self.value == other.value)
         elif other.len() == 1:
-            return list(self.value == other.value)
+            out =  list(self.value == other.value)
         else:
             self._compareLengths(other)
-            return [elemA == elemB for elemA, elemB in zip(self.value, other.value)]
+            out =  [elemA == elemB for elemA, elemB in zip(self.value, other.value)]
+
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
 
     def __ne__(self, other):
         if not isinstance(other, variable):
             return self != variable(other, self.unit)
-        self._compareUnits(other)
+
+        if not self._unitObject._SIBaseUnit == other._unitObject._SIBaseUnit:
+            raise ValueError(f'You cannot compare {self} and {other} as they do not have the same SI base unit')
+        
+        selfUnit = deepcopy(self.unit)
+        otherUnit = deepcopy(other.unit)
+        
+        self.convert(self._unitObject._SIBaseUnit)
+        other.convert(self._unitObject._SIBaseUnit)
+
         if self.len() == 1 and other.len() == 1:
-            return self.value != other.value
+            out = self.value != other.value
         elif self.len() == 1:
-            return list(self.value != other.value)
+            out = list(self.value != other.value)
         elif other.len() == 1:
-            return list(self.value != other.value)
+            out = list(self.value != other.value)
         else:
             self._compareLengths(other)
-            return [elemA != elemB for elemA, elemB in zip(self.value, other.value)]
+            out = [elemA != elemB for elemA, elemB in zip(self.value, other.value)]
+
+        self.convert(selfUnit)
+        other.convert(otherUnit)
+        return out
 
     def __hash__(self):
         return id(self)
@@ -738,3 +812,6 @@ def np_mean_for_variable(x, *args, **kwargs):
         else:
             unc = None
     return variable(val, x.unit, unc)
+
+
+

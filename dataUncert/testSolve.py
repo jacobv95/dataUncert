@@ -3,16 +3,16 @@ import unittest
 import numpy as np
 from scipy.optimize import Bounds
 
-tol = 1e-3
+tol = 1e-5
 solveTol = 1e-12
 
 class test(unittest.TestCase):
     
     def assertRelativeDifference(self, a, b, r):
         assert abs(a-b) < abs(b * r), f"The value {a} and {b} has a greater relative difference than {r}. The difference was {abs(a-b)} and was allowed to be {b*r}"
-        
-
-
+      
+      
+      
     def testSolveOneLinearEquation(self):
         a = variable(23.7, '', 0.1)
         b = variable(943, '', 12.5)
@@ -38,7 +38,7 @@ class test(unittest.TestCase):
         self.assertRelativeDifference(x.value, correct.value, tol)
         self.assertRelativeDifference(x.uncert, correct.uncert, tol)
     
-    def testSolveTwoLinearEquations(self):
+    def testSolveTwoLinearCostFunctions(self):
         a = variable(23.7, '', 0.1)
         b = variable(943, '', 12.5)
         c = variable(7.5, '', 0.05)
@@ -90,6 +90,8 @@ class test(unittest.TestCase):
         self.assertRelativeDifference(y.value, correctY.value, tol)
         self.assertRelativeDifference(x.uncert, correctX.uncert, tol)
         self.assertRelativeDifference(y.uncert, correctY.uncert, tol)
+        
+        
         
     def testSolveOneLinearEquationWithDifferentUnits(self):
         a = variable(23.7, 'L/min', 0.1)
@@ -171,91 +173,26 @@ class test(unittest.TestCase):
         self.assertRelativeDifference(y.uncert, correctY.uncert, tol)
 
 
+   
     def testSolveOneNonlinearEquationWithBounds1(self):
-        a = variable(23.7, 'mbar-min2/L2', 0.1)
-        b = variable(943, 'mbar', 12.5)
-        correct = (b / a)**(1/2)
-
-        def func(x):
-            return [a * x**2, b]
+        lbs = [variable(-10,'L/min'), variable(10, 'L/min')]
+        ubs = [variable(5,'L/min'), variable(100, 'L/min')]
         
-        lb = variable(10, 'L/min')
-        up = np.inf
-        bounds = [[lb, up]]
-        
-        if lb > correct:
-            correct = lb
-        if up < correct:
-            correct = up
-        
-        x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
-        
-        self.assertRelativeDifference(x.value, correct.value, tol)
-
-    def testSolveOneNonlinearEquationWithBounds2(self):
-        a = variable(23.7, 'mbar-min2/L2', 0.1)
-        b = variable(943, 'mbar', 12.5)
-        correct = (b / a)**(1/2)
-
-        def func(x):
-            return [a * x**2, b]
-        
-        lb = variable(-10, 'L/min')
-        up = variable(4, 'L/min')
-        bounds = [[lb, up]]
-        
-        if lb > correct:
-            correct = lb
-        if up < correct:
-            correct = up
-        
-        x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
-        
-        self.assertRelativeDifference(x.value, correct.value, tol)
-
-    def testSolveOneNonlinearEquationWithBounds3(self):
-        a = variable(23.7, 'mbar-min2/L2', 0.1)
-        b = variable(943, 'mbar', 12.5)
-        correct = (b / a)**(1/2)
-
-        def func(x):
-            return [a * x**2, b]
-        
-        lb = variable(-10, 'L/min')
-        up = variable(4, 'L/min')
-        bounds = [lb, up]
-        
-        if lb > correct:
-            correct = lb
-        if up < correct:
-            correct = up
-        
-        x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
-        
-        self.assertRelativeDifference(x.value, correct.value, tol)
-
-    def testSolveOneNonlinearEquationWithBounds4(self):
-        lbs = [-10, 10]
-        ubs = [5, 100]
         
         for lb in lbs:
             for ub in ubs:
                 lb, ub = min([lb, ub]), max([lb,ub])
+                bounds = [lb,ub]
                 
                 a = variable(23.7, 'mbar-min2/L2', 0.1)
                 b = variable(943, 'mbar', 12.5)
                 correct = (b / a)**(1/2)
                 correct = [correct, -correct]
+                correct = [np.min([np.max([lb, elem]), ub]) for elem in correct]
                 
                 def func(x):
                     return [a * x**2, b]
 
-                bounds = Bounds([lb], [ub])
-                for i in range(len(correct)):
-                    if lb > correct[i]:
-                        correct[i] = variable(lb, correct[i].unit)
-                    if ub < correct[i]:
-                        correct[i] = variable(ub, correct[i].unit)
                     
                 x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
                 
@@ -263,10 +200,127 @@ class test(unittest.TestCase):
                 correct = correct[minIndex]
                 self.assertRelativeDifference(x.value, correct.value, tol)
 
+    def testSolveOneNonelinearEquationWithBounds2(self):
+        tii = variable(50,'')
+        tio = variable(30)
+        toi = variable(15)
+        # too = variable(45)
+        lmdt = variable(25)
+
+        def func(too):
+            dt1 = tii - toi
+            dt2 = too - tio
+            return [lmdt, (dt1 - dt2) / (np.log(dt1) - np.log(dt2))]
+        
+        def bounds(too):
+            return [tio, too, variable(np.inf)]
+        
+        x0 = variable(-16,'')
+        x = solve(func, x0, tol = 1e-10, bounds = bounds)
+        
+        eq = func(x)
+        residual = eq[0] - eq[1]
+        self.assertAlmostEqual(residual.value,0)
+
+    def testSolveOneNonelinearEquationWithBounds3(self):
+        tii = variable(50,'')
+        tio = variable(30)
+        # toi = variable(15)
+        too = variable(45)
+        lmdt = variable(25)
+
+        def func(toi):
+            dt1 = tii - toi
+            dt2 = too - tio
+            return [lmdt, (dt1 - dt2) / (np.log(dt1) - np.log(dt2))]
+        
+        def bounds(toi):
+            return [variable(-np.inf), toi, tii]
+        
+        x0 = variable(-16,'')
+        x = solve(func, x0, tol = 1e-10, bounds = bounds)
+        
+        eq = func(x)
+        residual = eq[0] - eq[1]
+        self.assertAlmostEqual(residual.value,0)
+    
+    def testSolveOneNonelinearEquationWithBounds4(self):
+        tii = variable(50,'')
+        # tio = variable(30)
+        toi = variable(15)
+        too = variable(45)
+        lmdt = variable(25)
+
+        def func(tio):
+            dt1 = tii - toi
+            dt2 = too - tio
+            return [lmdt, (dt1 - dt2) / (np.log(dt1) - np.log(dt2))]
+        
+        def bounds(tio):
+            return [variable(-np.inf), tio, too]
+        
+        x0 = variable(-16,'')
+        x = solve(func, x0, tol = 1e-10, bounds = bounds)
+        
+        eq = func(x)
+        residual = eq[0] - eq[1]
+        self.assertAlmostEqual(residual.value,0)
+    
+    def testSolveOneNonelinearEquationWithBounds4(self):
+        # tii = variable(50,'')
+        tio = variable(30)
+        toi = variable(15)
+        too = variable(45)
+        lmdt = variable(25)
+
+        def func(tii):
+            dt1 = tii - toi
+            dt2 = too - tio
+            return [lmdt, (dt1 - dt2) / (np.log(dt1) - np.log(dt2))]
+        
+        def bounds(tii):
+            return [toi, tii, variable(np.inf)]
+        
+        x0 = variable(-16,'')
+        x = solve(func, x0, tol = 1e-10, bounds = bounds)
+        
+        eq = func(x)
+        residual = eq[0] - eq[1]
+        self.assertAlmostEqual(residual.value,0)
+
+    def testSolveOneNonlinearEquationWithBoundsUsingDifferentUnits1(self):
+                
+        a = variable(23.7, 'mbar-min2/L2', 0.1)
+        b = variable(943, 'mbar', 12.5)
+        correct = (b / a)**(1/2)
+        
+        def func(x):
+            return [a * x**2, b]
+
+        bounds = [variable(0.06, 'm3/h'), variable(1.667,'L/s')]
+            
+        x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
+        
+        self.assertRelativeDifference(x.value, correct.value, tol)
+    
+    
+    def testSolveOneNonlinearEquationWithBoundsUsingDifferentUnits2(self):
+                
+        a = variable(23.7, 'mbar-min2/L2', 0.1)
+        b = variable(943, 'mbar', 12.5)
+        correct = (b / a)**(1/2)
+        
+        def func(x):
+            return [a * x**2, b]
+
+        def bounds(x):
+            return [variable(0.06, 'm3/h'), x, variable(1.667,'L/s')]
+            
+        x = solve(func, variable(100,'L/min'), bounds = bounds, tol = solveTol)
+        
+        self.assertRelativeDifference(x.value, correct.value, tol)
 
 
-
-## TODO test constraints
 
 if __name__ == '__main__':
     unittest.main()
